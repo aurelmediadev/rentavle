@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, tipos y tests unitarios
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm --filter @rentavle/domain --filter @rentavle/country test
+
+  database:
+    name: Base de datos (migraciones y RLS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Start Postgres with migrations
+        run: pnpm exec supabase db start
+      - run: pnpm --filter @rentavle/db test
+
+  e2e:
+    name: End-to-end
+    runs-on: ubuntu-latest
+    needs: [checks, database]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Start Supabase
+        run: pnpm exec supabase start -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,studio,postgres-meta,supavisor
+      - name: Configure environment
+        run: |
+          KEY=$(pnpm exec supabase status -o json | jq -r '.PUBLISHABLE_KEY')
+          cat > apps/web/.env.local <<EOF
+          NEXT_PUBLIC_SITE_URL=http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$KEY
+          DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
+          EOF
+      - run: pnpm --filter @rentavle/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @rentavle/web test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/test-results
+          retention-days: 7

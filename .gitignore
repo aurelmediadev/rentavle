@@ -1,0 +1,38 @@
+# dependencias
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# entorno (nunca subir secretos)
+.env
+.env*.local
+!.env.example
+
+# tests
+coverage/
+playwright-report/
+test-results/
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# sistema / editores
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# configuración local de Claude Code
+.claude/settings.local.json
+
+# vercel
+.vercel/
