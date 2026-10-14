@@ -2,73 +2,12 @@
  * Row Level Security: one organization never sees or changes another's data.
  * Runs against the local Supabase database (`pnpm exec supabase start`).
  */
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createDbClients, type JwtClaims } from '../src/client';
 import { invitations, memberships, organizations, profiles } from '../src/schema';
+import { createTestDb, expectDbError, type TestUser } from './helpers';
 
-const db = createDbClients(
-  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:55322/postgres',
-);
-
-interface TestUser {
-  id: string;
-  email: string;
-  claims: JwtClaims;
-}
-
-const createdUsers: string[] = [];
-
-async function createUser(name: string): Promise<TestUser> {
-  const id = randomUUID();
-  const email = `${name}-${id.slice(0, 8)}@test.rentavle.local`;
-  await db.admin.execute(sql`
-    insert into auth.users (id, email, aud, role, raw_user_meta_data, created_at, updated_at)
-    values (${id}, ${email}, 'authenticated', 'authenticated',
-            ${JSON.stringify({ first_name: name, last_name: 'Test' })}::jsonb, now(), now())
-  `);
-  createdUsers.push(id);
-  return { id, email, claims: { sub: id, role: 'authenticated', email } };
-}
-
-async function createOrganization(user: TestUser, name: string): Promise<string> {
-  return db.withUser(user.claims, async (tx) => {
-    const rows = await tx.execute<{ id: string }>(sql`
-      select public.create_organization(${name}, 'AR', 'ARS', 'America/Argentina/Buenos_Aires', 'es-AR') as id
-    `);
-    return rows[0]!.id;
-  });
-}
-
-async function invite(admin: TestUser, orgId: string, email: string, role: 'admin' | 'operator', expiresInMs = 86_400_000) {
-  const token = randomBytes(32).toString('base64url');
-  await db.withUser(admin.claims, (tx) =>
-    tx.insert(invitations).values({
-      organizationId: orgId,
-      email,
-      role,
-      tokenHash: createHash('sha256').update(token).digest('hex'),
-      invitedBy: admin.id,
-      expiresAt: new Date(Date.now() + expiresInMs),
-    }),
-  );
-  return token;
-}
-
-/** Drizzle wraps Postgres errors; the database message is in `cause`. */
-async function expectDbError(promise: Promise<unknown>, message: RegExp) {
-  const error = await promise.then(
-    () => null,
-    (err: unknown) => err as Error & { cause?: Error },
-  );
-  expect(error, 'expected the query to fail').not.toBeNull();
-  expect(error?.cause?.message ?? error?.message).toMatch(message);
-}
-
-function acceptInvitation(user: TestUser, token: string) {
-  return db.withUser(user.claims, (tx) => tx.execute(sql`select public.accept_invitation(${token})`));
-}
+const { db, createUser, createOrganization, invite, acceptInvitation, cleanup } = createTestDb();
 
 let alice: TestUser;
 let bob: TestUser;
@@ -84,13 +23,7 @@ beforeAll(async () => {
   orgB = await createOrganization(bob, 'Inmobiliaria B');
 });
 
-afterAll(async () => {
-  await db.admin.delete(organizations).where(sql`${organizations.id} in (${orgA}, ${orgB})`);
-  for (const id of createdUsers) {
-    await db.admin.execute(sql`delete from auth.users where id = ${id}`);
-  }
-  await db.close();
-});
+afterAll(cleanup);
 
 describe('tenant isolation', () => {
   it('creates the organization with the creator as admin and a trial', async () => {

@@ -6,7 +6,9 @@ Postgres (Supabase). Nombres de tablas y columnas en inglés, `snake_case`. Este
 
 - **Clave primaria:** `id uuid` (`gen_random_uuid()`; pasar a UUID v7 cuando Supabase use Postgres 18).
 - **Multi-tenant:** toda tabla de negocio tiene `organization_id uuid not null`, con índice y **Row Level Security** que solo permite filas de organizaciones donde el usuario es miembro (ver [05-arquitectura](05-arquitectura.md)).
-- **Número visible:** las entidades que el usuario ve numeradas (`contracts`, `clients`, `properties`, `movements`, `documents`, `incidents`) tienen `number int` correlativo **por organización** (`unique(organization_id, number)`), generado con una tabla `org_counters`.
+- **Número visible:** las entidades que el usuario ve numeradas (`contracts`, `clients`, `properties`, `movements`, `documents`, `incidents`) tienen `number int` correlativo **por organización** (`unique(organization_id, number)`), asignado por un trigger de Postgres (`private.assign_number`) con la tabla `org_counters`; el número no cambia nunca.
+- **Direcciones:** columnas embebidas en cada tabla (`street, street_number, unit, city, region, postal_code, address_country`), no una tabla aparte. `region` es un código del `CountryPack` (provincia, estado, región). Lo mismo aplica donde abajo dice `address_id`.
+- **Hijos de otra tabla** (contactos, cuentas, titulares) repiten `organization_id`; las políticas RLS verifican que coincida con el del padre.
 - **Auditoría:** `created_at`, `updated_at`, `created_by`. Borrado lógico con `deleted_at` donde aplica (contratos, clientes, propiedades). Los asientos contables nunca se borran.
 - **Dinero:** `numeric(14,2)` + columna `currency char(3)`.
 - **Enums:** como tipos de Postgres o tablas de referencia si dependen del país.
@@ -60,17 +62,16 @@ erDiagram
 ## Clientes y propiedades
 
 **clients**
-`id, organization_id, number, kind (person | company), first_name, last_name, company_name, doc_type, doc_number, tax_id, tax_condition, nationality, birth_date, address_id, notes`
+`id, organization_id, number, kind (person | company), first_name, last_name, company_name, doc_type, doc_number, tax_id, tax_condition, nationality, birth_date, <dirección>, notes, deleted_at` (implementado)
 
-**client_contacts** — `id, client_id, type (email | phone | whatsapp), value, label, is_primary`
+**client_contacts** — `id, organization_id, client_id, type (email | phone), value, label, is_primary` (implementado; WhatsApp usa el teléfono)
 **bank_accounts** — `id, organization_id, owner_type (client | organization), client_id, bank_name, holder_name, account_number, cbu_cvu, alias, tax_id, currency`
 
-**addresses** — `id, organization_id, street, number, unit, city, state, postal_code, country_code, lat, lng`
 
 **buildings** (F2) — `id, organization_id, name, address_id`
 
 **properties**
-`id, organization_id, number, building_id, address_id, type (apartment | house | commercial | office | parking | other), status (available | rented | unavailable), cadastral_id, notes`
+`id, organization_id, number, building_id (F2), <dirección>, type (apartment | house | commercial | office | parking | land | other), status (available | rented | unavailable), cadastral_id, notes, deleted_at` (implementado)
 
 **property_owners** — `property_id, client_id, ownership_pct numeric(5,2)` (suma 100 por propiedad)
 

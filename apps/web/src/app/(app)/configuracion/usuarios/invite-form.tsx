@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useId } from "react";
 import { Copy, Check } from "lucide-react";
 import { Field, FormMessage, SubmitButton } from "@/components/form";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { type InviteState, inviteMember } from "./actions";
 
 export function InviteForm() {
+  const roleId = useId();
   const [state, action] = useActionState<InviteState, FormData>(inviteMember, {});
   const [copied, setCopied] = useState(false);
 
@@ -18,9 +19,9 @@ export function InviteForm() {
       <form action={action} className="grid gap-4 sm:grid-cols-[1fr_180px_auto] sm:items-end">
         <Field name="email" label="Email" type="email" required state={state.ok ? {} : state} />
         <div className="grid gap-2">
-          <Label htmlFor="field-role">Rol</Label>
+          <Label htmlFor={roleId}>Rol</Label>
           <Select name="role" defaultValue={state.values?.role ?? "operator"}>
-            <SelectTrigger id="field-role" className="w-full">
+            <SelectTrigger id={roleId} className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

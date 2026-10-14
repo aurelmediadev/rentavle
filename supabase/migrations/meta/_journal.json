@@ -15,6 +15,27 @@
       "when": 1791991863639,
       "tag": "20261014153103_rls_organizations",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791997484438,
+      "tag": "20261014170444_clients_properties",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791997485369,
+      "tag": "20261014170445_rls_clients_properties",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791997612628,
+      "tag": "20261014170652_org_number_default",
+      "breakpoints": true
     }
   ]
 }

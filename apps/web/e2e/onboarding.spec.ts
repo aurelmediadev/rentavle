@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { E2E_PASSWORD, randomCuit, signUpAndConfirm, uniqueEmail } from "./helpers";
+import { E2E_PASSWORD, randomCuit, signUpAndConfirm, trackBrowserErrors, uniqueEmail } from "./helpers";
 
 test("an agency signs up, creates its organization and invites an operator", async ({ browser }) => {
   const adminEmail = uniqueEmail("admin");
@@ -8,11 +8,7 @@ test("an agency signs up, creates its organization and invites an operator", asy
 
   // 1. The admin signs up and confirms the email.
   const admin = await browser.newPage();
-  const problems: string[] = [];
-  admin.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
-  admin.on("console", (m) => {
-    if (m.type() === "error") problems.push(`console: ${m.text()}`);
-  });
+  const problems = trackBrowserErrors(admin);
   await signUpAndConfirm(admin, { firstName: "Ana", email: adminEmail });
 
   // 2. Onboarding: create the organization.

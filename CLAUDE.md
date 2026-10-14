@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades listos (punto 1 del roadmap). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 
@@ -14,6 +14,9 @@ Esta versión tiene cambios grandes: leer `apps/web/node_modules/next/dist/docs/
 - Todo lo que lee la sesión (cookies) va **dentro de `<Suspense>` en la propia página**: la página exporta un componente síncrono con el encabezado y un componente async con los datos. Un Suspense en el layout no cubre la navegación entre páginas hermanas.
 - `createSupabaseServerClient()` llama a `connection()` antes de crear el cliente (Supabase usa `Date.now()`).
 - Nada de `Math.random()`/`Date.now()` en el render; usar funciones auxiliares fuera del componente o tiempo de pedido.
+- Hooks de URL (`usePathname`, `useSearchParams`) en componentes que se renderizan en rutas dinámicas van dentro de `<Suspense>` (ver el menú en `app-sidebar.tsx`).
+- Next conserva montadas (ocultas) las páginas ya visitadas: los `id` de los campos se generan con `useId()` (nunca fijos) y los tests e2e interactúan solo con elementos visibles (`.filter({ visible: true })`).
+- React 19 reinicia el formulario después de cada Server Action: **todo** error de validación devuelve `values: formValues(formData)` para no perder lo cargado. Las listas dinámicas (contactos, propietarios) son estado del cliente.
 - El test e2e falla si hay errores en la consola del navegador: así se detectan los avisos de validación de Next.
 
 ## Base de datos

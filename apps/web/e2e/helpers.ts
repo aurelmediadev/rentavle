@@ -61,3 +61,25 @@ export async function signUpAndConfirm(page: Page, opts: { firstName: string; em
 
   await page.goto(await linkFromEmail(opts.email, /verify/));
 }
+
+/** Collects browser errors (including Next.js dev validation) to assert none happened. */
+export function trackBrowserErrors(page: Page): string[] {
+  const problems: string[] = [];
+  page.on("pageerror", (e) => problems.push(`pageerror: ${e.message}`));
+  page.on("console", (m) => {
+    if (m.type() === "error") problems.push(`console: ${m.text()}`);
+  });
+  return problems;
+}
+
+/** Signs up a new admin and creates their agency; leaves the page on /panel. */
+export async function createAgency(page: Page, name = `Inmobiliaria E2E ${Date.now()}`) {
+  const email = uniqueEmail("admin");
+  await signUpAndConfirm(page, { firstName: "Ana", email });
+  await expect(page).toHaveURL(/\/bienvenida/);
+  await page.getByLabel("Nombre de la inmobiliaria").fill(name);
+  await page.getByLabel("CUIT").fill(randomCuit());
+  await page.getByRole("button", { name: "Empezar" }).click();
+  await expect(page).toHaveURL(/\/panel/);
+  return { email, name };
+}

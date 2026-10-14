@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useId } from "react";
 import { Field, FormMessage, SubmitButton } from "@/components/form";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,6 +15,7 @@ interface CountryOption {
 }
 
 export function OrganizationForm({ countries }: { countries: CountryOption[] }) {
+  const countryId = useId();
   const [state, action] = useActionState(createOrganization, initialFormState);
   const [countryCode, setCountryCode] = useState(state.values?.country ?? countries[0]!.code);
   const country = countries.find((c) => c.code === countryCode) ?? countries[0]!;
@@ -24,9 +25,9 @@ export function OrganizationForm({ countries }: { countries: CountryOption[] }) 
       <FormMessage state={state} />
       <Field name="name" label="Nombre de la inmobiliaria" required autoComplete="organization" state={state} />
       <div className="grid gap-2">
-        <Label htmlFor="field-country">País</Label>
+        <Label htmlFor={countryId}>País</Label>
         <Select name="country" value={countryCode} onValueChange={setCountryCode}>
-          <SelectTrigger id="field-country" className="w-full">
+          <SelectTrigger id={countryId} className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

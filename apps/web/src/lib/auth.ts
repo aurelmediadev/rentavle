@@ -26,6 +26,7 @@ export interface CurrentUser {
 export interface ActiveMembership {
   organizationId: string;
   organizationName: string;
+  countryCode: string;
   role: Role;
 }
 
@@ -56,6 +57,7 @@ export const getMemberships = cache(async (): Promise<ActiveMembership[]> => {
       .select({
         organizationId: schema.memberships.organizationId,
         organizationName: schema.organizations.name,
+        countryCode: schema.organizations.countryCode,
         role: schema.memberships.role,
       })
       .from(schema.memberships)
