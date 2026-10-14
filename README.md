@@ -43,6 +43,8 @@ Los puertos usan el rango 553xx para no chocar con otros proyectos de Supabase e
 | `pnpm --filter @rentavle/db generate --name=<nombre>` | Genera una migración desde el esquema de Drizzle |
 | `pnpm --filter @rentavle/db generate:custom --name=<nombre>` | Migración SQL manual (políticas RLS, funciones) |
 | `pnpm exec supabase db reset` | Recrea la base local aplicando todas las migraciones |
+| `pnpm --filter @rentavle/jobs fetch-indexes` | Descarga IPC e ICL oficiales a la base local (correr después de cada `db reset`) |
+| `pnpm --filter @rentavle/jobs apply-rent-updates` | Calcula los aumentos que corresponden |
 
 ## Estructura
 

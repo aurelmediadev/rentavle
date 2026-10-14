@@ -111,13 +111,15 @@ interface CountryPack {
 
 Cada integración externa va detrás de una interfaz con una implementación falsa para tests y desarrollo local.
 
-## Trabajos programados (Trigger.dev)
+## Trabajos programados
+
+> **Estado actual:** los trabajos son funciones del paquete `packages/jobs` (testeables y ejecutables desde la terminal con `pnpm --filter @rentavle/jobs <tarea>`). En producción los dispara **Vercel Cron** llamando a `/api/cron/*` con `Authorization: Bearer $CRON_SECRET` (`apps/web/vercel.json`). Trigger.dev se suma cuando haya tareas largas o con reintentos finos (PDFs, IA, envíos masivos).
 
 | Tarea | Frecuencia | Qué hace |
 |---|---|---|
-| `fetch-indexes` | Diaria | Descarga índices nuevos; recalcula actualizaciones pendientes o provisorias |
+| `fetch-indexes` | Diaria (implementada) | Descarga IPC (completo) e ICL (incremental, 90 días hacia atrás) y los guarda; Casa Propia es manual |
 | `generate-monthly-charges` | Diaria (procesa organizaciones cuyo mes comenzó en su zona horaria) | Crea deudas de alquiler y gastos recurrentes del mes |
-| `apply-rent-updates` | Diaria | Calcula los períodos que empiezan y programa avisos |
+| `apply-rent-updates` | Diaria (implementada) | Calcula los períodos que empiezan este mes o el próximo; recalcula los provisorios |
 | `send-scheduled-communications` | Cada hora | Envía recordatorios y avisos de mora que corresponden; usa `dedupe_key` |
 | `contract-expiry-alerts` | Diaria | Alertas de vencimiento a 60/30 días |
 | `render-document` | Por demanda | Genera el PDF y lo guarda en Storage |

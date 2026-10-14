@@ -1,0 +1,27 @@
+{
+  "name": "@rentavle/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "fetch-indexes": "tsx src/cli.ts fetch-indexes",
+    "apply-rent-updates": "tsx src/cli.ts apply-rent-updates",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rentavle/country": "workspace:*",
+    "@rentavle/db": "workspace:*",
+    "@rentavle/domain": "workspace:*",
+    "drizzle-orm": "0.45.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "5.0.4"
+  }
+}

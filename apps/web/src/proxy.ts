@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
-const PUBLIC_PREFIXES = ["/ingresar", "/registro", "/recuperar", "/auth", "/invitacion"];
+// /api/cron authenticates with CRON_SECRET instead of a session.
+const PUBLIC_PREFIXES = ["/ingresar", "/registro", "/recuperar", "/auth", "/invitacion", "/api/cron"];
 
 function isPublic(pathname: string) {
   return pathname === "/" || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));

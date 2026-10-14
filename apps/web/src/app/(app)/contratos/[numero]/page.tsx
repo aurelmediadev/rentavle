@@ -23,6 +23,7 @@ import {
 } from "../labels";
 import { contractStatus } from "../status";
 import { ContractActions } from "./contract-actions";
+import { AdjustPeriodDialog } from "../actualizaciones/update-controls";
 
 export const metadata: Metadata = { title: "Contrato · Rentavle" };
 
@@ -32,6 +33,15 @@ export default function ContractPage({ params }: PageProps<"/contratos/[numero]"
       <ContractDetail params={params} />
     </Suspense>
   );
+}
+
+const indexNumber = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 4 });
+function formatIndex(value: string | null) {
+  return value ? indexNumber.format(value as unknown as number) : "—";
+}
+/** Daily series (ICL) show the day; monthly ones the month. */
+function formatMonthOrDay(date: string, seriesCode: string | undefined) {
+  return seriesCode === "AR_ICL" ? formatDate(date) : formatMonth(date);
 }
 
 function Item({ label, value }: { label: string; value: React.ReactNode }) {
@@ -205,6 +215,7 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Aumento</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
+                <TableHead className="w-0" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -214,9 +225,27 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
                   <TableCell>
                     {formatMonth(p.startMonth)} – {formatMonth(p.endMonth)}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{PERIOD_STATUS_LABEL[p.status]}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {PERIOD_STATUS_LABEL[p.status]}
+                    {p.indexStartDate && p.indexEndDate && (
+                      <span className="block text-xs">
+                        {series?.name.split(" ")[0]} {formatMonthOrDay(p.indexStartDate, series?.code)} ({formatIndex(p.indexStartValue)}) →{" "}
+                        {formatMonthOrDay(p.indexEndDate, series?.code)} ({formatIndex(p.indexEndValue)})
+                      </span>
+                    )}
+                    {p.status === "manually_adjusted" && p.notes && <span className="block text-xs">{p.notes}</span>}
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">{p.variationPct ? formatPercent(p.variationPct) : "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">{p.amount ? formatMoney(p.amount, contract.currency) : "—"}</TableCell>
+                  <TableCell>
+                    {contract.status === "active" && p.periodNumber > 1 && p.status !== "not_billed" && p.status !== "initial" && (
+                      <AdjustPeriodDialog
+                        periodId={p.id}
+                        label={`período ${p.periodNumber}`}
+                        currentAmount={p.amount}
+                      />
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -37,15 +37,19 @@ Se guardan `índice`, `valor_inicial`, `fecha_inicial`, `valor_final`, `fecha_fi
 
 | Índice | Fuente | Valores | Cómo se eligen los valores inicial y final |
 |---|---|---|---|
-| **ICL** | BCRA (diario) | Valor diario | Valor del día de inicio del período anterior y del día de inicio del nuevo período |
-| **IPC** | INDEC (mensual, nivel general) | Nivel del índice por mes | Nivel del mes `inicio_período_anterior − desfase` y del mes `inicio_período_nuevo − desfase` |
-| **Casa Propia** | Ministerio (mensual, coeficiente) | Coeficiente mensual | Producto de los coeficientes de los meses del período |
+| **ICL** | BCRA API v4, variable 40 (diario) | Valor diario | Valor del día de inicio del período anterior y del nuevo período (mismo día del mes que el inicio del contrato; si el mes es más corto, su último día) |
+| **IPC** | INDEC vía datos.gob.ar, serie `148.3_INIVELNAL_DICI_M_26` (mensual) | Nivel general nacional, base dic-2016 | Nivel del mes `inicio_período_anterior − desfase` y del mes `inicio_período_nuevo − desfase`. Ej.: aumento trimestral de abril 2026 = nov-2025 → feb-2026 |
+| **Casa Propia** | Sin API pública: carga manual | Coeficiente mensual | Producto de los coeficientes de los meses `[inicio_anterior − desfase, inicio_nuevo − desfase)` (a validar con la normativa) |
 | **Porcentaje fijo** | El contrato | % por período | `monto × (1 + %)` |
 
 **Desfase y valores provisorios del IPC.** El INDEC publica el IPC de un mes a mediados del mes siguiente. Si el contrato se actualiza el 1° de octubre, el IPC de septiembre todavía no existe. Dos modos, configurables por organización (Krenta ofrece los mismos):
 
 - **Solo valores reales** (desfase 2): se usa hasta el último mes publicado. El aumento nunca se corrige.
-- **Último mes provisorio** (desfase 1): se estima el último mes (por ejemplo, con el último valor conocido) y se marca la actualización como `provisoria`. Cuando se publica el valor real, se recalcula y la diferencia se cobra o se devuelve como ajuste en la cuota siguiente.
+- **Último mes provisorio** (desfase 1): si el último mes no está publicado, se estima repitiendo la variación mensual anterior y la actualización queda `provisoria`. Cuando se publica el valor real, se recalcula (la diferencia ya cobrada se ajustará en la cuota siguiente cuando existan las deudas, Fase 1 punto 4).
+
+El modo es una preferencia de la organización (`organizations.settings.ipcMode`, por defecto `real`). El método de cada serie (`level_ratio` o `coefficient_product`) está en `index_series.method`. Implementación: `packages/domain/src/rent-update.ts` (cálculo) y `packages/jobs` (aplicación diaria).
+
+**Cuándo se calcula:** todos los días se calculan los períodos que empiezan este mes o el próximo (para poder avisar con anticipación), apenas están los valores del índice. Los ajustados a mano no se tocan nunca. Montos redondeados a 2 decimales (mitad hacia arriba).
 
 ### Reglas
 

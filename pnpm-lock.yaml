@@ -11,6 +11,9 @@ importers:
       supabase:
         specifier: 2.120.0
         version: 2.120.0
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -26,6 +29,9 @@ importers:
       '@rentavle/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@rentavle/jobs':
+        specifier: workspace:*
+        version: link:../../packages/jobs
       '@supabase/ssr':
         specifier: 0.12.7
         version: 0.12.7(@supabase/supabase-js@2.117.3)
@@ -110,7 +116,14 @@ importers:
         version: 5.9.3
 
   packages/country:
+    dependencies:
+      '@rentavle/domain':
+        specifier: workspace:*
+        version: link:../domain
     devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -146,6 +159,34 @@ importers:
         specifier: 10.6.0
         version: 10.6.0
     devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 5.0.4
+        version: 5.0.4(@types/node@22.20.5)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
+  packages/jobs:
+    dependencies:
+      '@rentavle/country':
+        specifier: workspace:*
+        version: link:../country
+      '@rentavle/db':
+        specifier: workspace:*
+        version: link:../db
+      '@rentavle/domain':
+        specifier: workspace:*
+        version: link:../domain
+      drizzle-orm:
+        specifier: 0.45.4
+        version: 0.45.4(postgres@3.4.9)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

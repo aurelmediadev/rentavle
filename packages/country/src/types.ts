@@ -4,7 +4,19 @@
  * Index fetchers and fiscal providers are added to the pack in later phases.
  */
 
+import type { IndexReading } from '@rentavle/domain';
+
 export type CountryCode = 'AR';
+
+/** An official index series and how to download it. */
+export interface IndexSource {
+  /** index_series.code */
+  readonly code: string;
+  /** false when values are loaded by hand (no public API). */
+  readonly automatic: boolean;
+  /** Values published from `from` to `to` (YYYY-MM-DD), any order. */
+  fetch(from: string, to: string): Promise<IndexReading[]>;
+}
 
 export interface Option<T extends string = string> {
   readonly value: T;
@@ -33,6 +45,7 @@ export interface CountryPack {
   readonly taxConditions: readonly Option[];
   /** Index series code preselected for new contracts (index_series.code). */
   readonly defaultIndexSeries: string;
+  readonly indexSources: readonly IndexSource[];
   /** First-level subdivisions (provinces, states, regions). */
   readonly regions: readonly Option[];
 }

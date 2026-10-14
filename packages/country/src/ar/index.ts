@@ -1,5 +1,6 @@
 import type { CountryPack } from '../types';
 import { formatCuit, normalizeCuit } from './cuit';
+import { argentinaIndexSources } from './indexes';
 
 export const argentina: CountryPack = {
   code: 'AR',
@@ -10,6 +11,7 @@ export const argentina: CountryPack = {
   defaultLocale: 'es-AR',
   phonePrefix: '+54',
   defaultIndexSeries: 'AR_IPC',
+  indexSources: argentinaIndexSources,
   taxId: {
     label: 'CUIT',
     placeholder: '30-12345678-9',

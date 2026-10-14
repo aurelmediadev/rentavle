@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto, la edición de condiciones y las alertas de vencimiento. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto, la edición de condiciones y las alertas de vencimiento. Punto 3 (índices y aumentos) listo. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 
@@ -24,6 +24,7 @@ Esta versión tiene cambios grandes: leer `apps/web/node_modules/next/dist/docs/
 - Consultas de usuarios siempre con `asUser()` (`src/lib/auth.ts`), que corre la transacción con el rol `authenticated` y los claims del JWT para que apliquen las políticas RLS. `db.admin` saltea RLS: solo para jobs, webhooks y tests.
 - Tablas en Drizzle (`packages/db/src/schema`); políticas RLS y funciones en migraciones SQL manuales (`generate:custom`).
 - Altas que cruzan tablas con permisos distintos (crear organización, aceptar invitación) son funciones `security definer` en Postgres.
+- Fuentes externas inestables: la API de datos.gob.ar tiene réplicas desactualizadas; el IPC se consulta varias veces y se unen los resultados (`packages/country/src/ar/indexes.ts`).
 - Cada tabla nueva de negocio: `organization_id`, RLS con `private.is_member()` / `private.has_role()`, y casos en `packages/db/test/tenant-isolation.test.ts`.
 
 ## Stack

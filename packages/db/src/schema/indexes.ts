@@ -5,6 +5,8 @@ import { id } from './_shared';
 // written only by the index import job. Policies in the "rls_contracts" migration.
 
 export const indexFrequency = pgEnum('index_frequency', ['daily', 'monthly']);
+/** How an update factor is derived from the series (see packages/domain/src/rent-update.ts). */
+export const indexMethod = pgEnum('index_method', ['level_ratio', 'coefficient_product']);
 
 export const indexSeries = pgTable('index_series', {
   id: id(),
@@ -13,6 +15,7 @@ export const indexSeries = pgTable('index_series', {
   countryCode: char({ length: 2 }).notNull(),
   name: text().notNull(),
   frequency: indexFrequency().notNull(),
+  method: indexMethod().notNull().default('level_ratio'),
   publisher: text().notNull(),
   sourceUrl: text(),
 }).enableRLS();

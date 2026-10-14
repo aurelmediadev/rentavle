@@ -38,7 +38,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Start Postgres with migrations
         run: pnpm exec supabase db start
-      - run: pnpm --filter @rentavle/db test
+      - run: pnpm --filter @rentavle/db --filter @rentavle/jobs test
 
   e2e:
     name: End-to-end
@@ -62,7 +62,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$KEY
           DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55322/postgres
+          CRON_SECRET=ci-secret
           EOF
+      - name: Load official indexes (IPC, ICL)
+        run: pnpm --filter @rentavle/jobs fetch-indexes
       - run: pnpm --filter @rentavle/web exec playwright install --with-deps chromium
       - run: pnpm --filter @rentavle/web test:e2e
       - uses: actions/upload-artifact@v4

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { Building2, Contact, FileText, LayoutDashboard, Users } from "lucide-react";
+import { Building2, Contact, FileText, LayoutDashboard, LineChart, TrendingUp, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,9 +24,11 @@ const sections = [
     label: "Administración",
     items: [
       { href: "/panel", label: "Panel", icon: LayoutDashboard },
-      { href: "/contratos", label: "Contratos", icon: FileText },
+      { href: "/contratos", label: "Contratos", icon: FileText, exact: true },
+      { href: "/contratos/actualizaciones", label: "Actualizaciones", icon: TrendingUp },
       { href: "/propiedades", label: "Propiedades", icon: Building2 },
       { href: "/clientes", label: "Clientes", icon: Contact },
+      { href: "/indices", label: "Índices", icon: LineChart },
     ],
   },
   {
@@ -51,6 +53,20 @@ export function AppSidebar({ header, footer }: { header: ReactNode; footer: Reac
   );
 }
 
+interface NavItem {
+  href: string;
+  /** Contratos stays active on /contratos/12 but not on /contratos/actualizaciones. */
+  exact?: boolean;
+}
+
+function isActive(item: NavItem, path: string | null) {
+  if (!path) return false;
+  if (!path.startsWith(item.href)) return false;
+  if (!item.exact) return true;
+  const rest = path.slice(item.href.length);
+  return rest === "" || /^\/(\d+|nuevo)(\/|$)/.test(rest);
+}
+
 function ActiveNavigation() {
   return <Navigation activePath={usePathname()} />;
 }
@@ -63,7 +79,7 @@ function Navigation({ activePath }: { activePath: string | null }) {
         <SidebarMenu>
           {section.items.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton asChild isActive={activePath?.startsWith(item.href) ?? false} tooltip={item.label}>
+              <SidebarMenuButton asChild isActive={isActive(item, activePath)} tooltip={item.label}>
                 <Link href={item.href}>
                   <item.icon />
                   <span>{item.label}</span>

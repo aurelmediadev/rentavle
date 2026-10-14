@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^22.20.5",
     "typescript": "^5.9.3",
     "vitest": "5.0.4"
+  },
+  "dependencies": {
+    "@rentavle/domain": "workspace:*"
   }
 }
