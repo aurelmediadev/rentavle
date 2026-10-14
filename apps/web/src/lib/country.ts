@@ -10,6 +10,7 @@ export interface CountryFormOptions {
   taxConditions: Option[];
   regions: Option[];
   currencies: string[];
+  defaultIndexSeries: string;
 }
 
 export function countryFormOptions(code: string): CountryFormOptions {
@@ -23,6 +24,7 @@ export function countryFormOptions(code: string): CountryFormOptions {
     taxConditions: [...pack.taxConditions],
     regions: [...pack.regions],
     currencies: [...pack.currencies],
+    defaultIndexSeries: pack.defaultIndexSeries,
   };
 }
 

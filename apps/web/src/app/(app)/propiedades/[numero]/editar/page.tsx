@@ -49,7 +49,7 @@ async function EditProperty({ params }: Pick<PageProps<"/propiedades/[numero]/ed
           <PropertyForm
             action={editProperty.bind(null, property.id)}
             country={countryFormOptions(countryCode)}
-            clients={clients.map((c) => ({ id: c.id, number: c.number, name: clientName(c), docNumber: c.docNumber }))}
+            clients={clients.map((c) => ({ id: c.id, name: clientName(c), detail: c.docNumber }))}
             defaults={defaults}
             owners={owners.map((o) => ({ clientId: o.clientId, pct: String(Number(o.ownershipPct)) }))}
             submitLabel="Guardar cambios"

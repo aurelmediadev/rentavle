@@ -33,7 +33,7 @@ async function Form() {
     <PropertyForm
       action={createProperty}
       country={countryFormOptions(countryCode)}
-      clients={clients.map((c) => ({ id: c.id, number: c.number, name: clientName(c), docNumber: c.docNumber }))}
+      clients={clients.map((c) => ({ id: c.id, name: clientName(c), detail: c.docNumber }))}
       submitLabel="Crear propiedad"
       cancelHref="/propiedades"
     />

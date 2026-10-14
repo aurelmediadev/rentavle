@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { getCountryPack } from "@rentavle/country";
 import { PageHeader } from "@/components/page-header";
 import { PageLoading } from "@/components/page-loading";
@@ -13,6 +13,9 @@ import { getActiveMembership } from "@/lib/auth";
 import { optionLabel } from "@/lib/country";
 import { clientName, formatAddress } from "@/lib/format";
 import { getPropertyByNumber } from "../data";
+import { listPropertyContracts } from "../../contratos/data";
+import { contractStatus } from "../../contratos/status";
+import { formatDate, todayIn } from "@/lib/dates";
 import { propertyStatusLabel, propertyTypeLabel } from "../labels";
 import { ArchivePropertyButton } from "./property-actions";
 
@@ -38,10 +41,12 @@ function Item({ label, value }: { label: string; value: React.ReactNode }) {
 async function PropertyDetail({ params }: Pick<PageProps<"/propiedades/[numero]">, "params">) {
   const number = Number((await params).numero);
   if (!Number.isInteger(number) || number < 1) notFound();
-  const [result, { countryCode }] = await Promise.all([getPropertyByNumber(number), getActiveMembership()]);
+  const [result, { countryCode, timezone }] = await Promise.all([getPropertyByNumber(number), getActiveMembership()]);
   if (!result) notFound();
 
   const { property, owners } = result;
+  const propertyContracts = await listPropertyContracts(property.id);
+  const today = todayIn(timezone);
   const pack = getCountryPack(countryCode);
   const archived = property.deletedAt !== null;
 
@@ -106,11 +111,35 @@ async function PropertyDetail({ params }: Pick<PageProps<"/propiedades/[numero]"
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Contratos</CardTitle>
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/contratos/nuevo?propiedad=${property.number}`}>
+              <Plus /> Nuevo contrato
+            </Link>
+          </Button>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">Los contratos de esta propiedad van a aparecer acá.</p>
+          {propertyContracts.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Esta propiedad todavía no tiene contratos.</p>
+          ) : (
+            <ul className="divide-y text-sm">
+              {propertyContracts.map((c) => {
+                const status = contractStatus(c, today);
+                return (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <Link href={`/contratos/${c.number}`} className="hover:underline">
+                      #{c.number} · {c.tenants.map(clientName).join(", ")}
+                    </Link>
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      {formatDate(c.startDate)} – {formatDate(c.endDate)}
+                      <Badge variant={status.variant}>{status.label}</Badge>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>

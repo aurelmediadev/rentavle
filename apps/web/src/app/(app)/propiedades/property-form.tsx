@@ -64,7 +64,6 @@ export function PropertyForm({ action, country, clients, defaults = {}, owners: 
                 exclude={owners.map((o) => o.clientId).filter((id): id is string => Boolean(id))}
                 placeholder="Elegí el propietario"
                 ariaLabel={`Propietario ${index + 1}`}
-                newClientHref="/clientes/nuevo"
               />
               <div className="relative">
                 <Input

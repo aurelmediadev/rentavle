@@ -27,7 +27,8 @@ export function Field({ name, label, state, hint, className, ...props }: FieldPr
       <Input
         id={id}
         name={name}
-        defaultValue={state.values?.[name]}
+        // Controlled inputs (value prop) must not also get a defaultValue.
+        defaultValue={props.value === undefined ? state.values?.[name] : undefined}
         aria-invalid={errors ? true : undefined}
         aria-describedby={errors ? `${id}-error` : undefined}
         {...props}

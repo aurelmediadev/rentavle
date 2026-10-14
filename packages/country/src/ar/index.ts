@@ -9,6 +9,7 @@ export const argentina: CountryPack = {
   defaultTimezone: 'America/Argentina/Buenos_Aires',
   defaultLocale: 'es-AR',
   phonePrefix: '+54',
+  defaultIndexSeries: 'AR_IPC',
   taxId: {
     label: 'CUIT',
     placeholder: '30-12345678-9',

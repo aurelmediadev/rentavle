@@ -31,6 +31,8 @@ export interface CountryPack {
   readonly taxId: TaxIdRules;
   readonly identityDocuments: readonly Option[];
   readonly taxConditions: readonly Option[];
+  /** Index series code preselected for new contracts (index_series.code). */
+  readonly defaultIndexSeries: string;
   /** First-level subdivisions (provinces, states, regions). */
   readonly regions: readonly Option[];
 }

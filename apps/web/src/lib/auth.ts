@@ -27,6 +27,7 @@ export interface ActiveMembership {
   organizationId: string;
   organizationName: string;
   countryCode: string;
+  timezone: string;
   role: Role;
 }
 
@@ -58,6 +59,7 @@ export const getMemberships = cache(async (): Promise<ActiveMembership[]> => {
         organizationId: schema.memberships.organizationId,
         organizationName: schema.organizations.name,
         countryCode: schema.organizations.countryCode,
+        timezone: schema.organizations.timezone,
         role: schema.memberships.role,
       })
       .from(schema.memberships)

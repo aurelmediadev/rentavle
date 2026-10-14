@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { Building2, Contact, LayoutDashboard, Users } from "lucide-react";
+import { Building2, Contact, FileText, LayoutDashboard, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +24,7 @@ const sections = [
     label: "Administración",
     items: [
       { href: "/panel", label: "Panel", icon: LayoutDashboard },
+      { href: "/contratos", label: "Contratos", icon: FileText },
       { href: "/propiedades", label: "Propiedades", icon: Building2 },
       { href: "/clientes", label: "Clientes", icon: Contact },
     ],
