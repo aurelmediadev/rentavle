@@ -129,9 +129,9 @@ Restricción: por cada `posting_id` (un registro o una reversa), débitos = cré
 
 ## Comunicaciones
 
-**message_templates** — `id, organization_id (null = global), type, channel, locale, subject, body`
+**message_templates** — `id, organization_id, type, channel (email | whatsapp), subject, body, updated_by` (solo las versiones propias de cada inmobiliaria; las de fábrica están en `packages/emails`)
 **communications**
-`id, organization_id, contract_id, client_id, movement_id, type (amount_update | payment_reminder | late_notice | receipt | owner_payment_notice | settlement | contract_expiry), channel (email | whatsapp_link | whatsapp_api), sender (manual | automatic), to_address, subject, body, provider_message_id, status (queued | sent | delivered | bounced | failed | read), dedupe_key unique, sent_at`
+`id, organization_id, contract_id, client_id, movement_id, type (receipt | settlement | payment_reminder | late_notice | amount_update | contract_expiry), channel (email | whatsapp_link), sender (manual | automatic), to_address, subject, body, status (queued | sent | delivered | bounced | failed), provider_message_id, error, attempts, dedupe_key (única por organización; obligatoria en los automáticos), sent_at, created_by` — después de creada solo cambian los datos de entrega; `whatsapp_api` y `owner_payment_notice` llegan en F2
 
 ## Facturación electrónica (F3)
 

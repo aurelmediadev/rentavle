@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { shareDocument } from "./document-actions";
+import { type Draft, EmailDocumentDialog, WhatsappDocumentDialog } from "./send-dialogs";
 
 interface DocumentInfo {
   id: string;
@@ -16,7 +17,7 @@ interface DocumentInfo {
   status: "issued" | "void";
 }
 
-export function DocumentCard({ document }: { document: DocumentInfo }) {
+export function DocumentCard({ document, draft }: { document: DocumentInfo; draft: Draft | null }) {
   const [link, setLink] = useState<{ url: string; expiresAt: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const title = `${document.type === "receipt" ? "Recibo" : "Liquidación"} N° ${String(document.number).padStart(8, "0")}`;
@@ -57,6 +58,12 @@ export function DocumentCard({ document }: { document: DocumentInfo }) {
                 <FileDown /> Media hoja
               </a>
             </Button>
+          )}
+          {draft && document.status === "issued" && (
+            <>
+              <EmailDocumentDialog draft={draft} />
+              <WhatsappDocumentDialog draft={draft} />
+            </>
           )}
           <Button variant="outline" onClick={share} disabled={pending}>
             <Link2 /> {pending ? "Creando link…" : "Copiar link para compartir"}

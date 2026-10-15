@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto, la edición de condiciones y las alertas de vencimiento. Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad) y 8 (documentos PDF) listos. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto y la edición de condiciones (las alertas de vencimiento salen por email desde el punto 9). Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF) y 9 (comunicaciones) listos. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 
@@ -34,7 +34,7 @@ Esta versión tiene cambios grandes: leer `apps/web/node_modules/next/dist/docs/
 
 ## Stack
 
-Next.js (App Router) + TypeScript estricto, Tailwind + shadcn/ui, Supabase (Postgres, Auth, Storage), Drizzle ORM, Trigger.dev, Resend, `@react-pdf/renderer`, MercadoPago, `decimal.js`, `next-intl`, Vitest, Playwright. Monorepo pnpm (`apps/web`, `packages/*`; plantillas PDF en `packages/pdf`). Detalle en [`docs/05-arquitectura.md`](docs/05-arquitectura.md).
+Next.js (App Router) + TypeScript estricto, Tailwind + shadcn/ui, Supabase (Postgres, Auth, Storage), Drizzle ORM, Trigger.dev, Resend, `@react-pdf/renderer`, MercadoPago, `decimal.js`, `next-intl`, Vitest, Playwright. Monorepo pnpm (`apps/web`, `packages/*`; plantillas PDF en `packages/pdf`, mensajes y envío de emails en `packages/emails`). Detalle en [`docs/05-arquitectura.md`](docs/05-arquitectura.md).
 
 ## Reglas
 
@@ -44,6 +44,7 @@ Next.js (App Router) + TypeScript estricto, Tailwind + shadcn/ui, Supabase (Post
 - **Contabilidad:** los asientos (`ledger_entries`) nunca se editan ni se borran; se corrigen con reversas. Débitos = créditos por operación.
 - **Multipaís:** nada de `if (country === 'AR')` fuera de `packages/country`.
 - **Trabajos programados idempotentes:** volver a ejecutarlos no debe duplicar deudas, avisos ni asientos.
-- **Cliente:** no importar el esquema de la base ni enums del ORM en componentes del navegador.
+- **Cliente:** no importar el esquema de la base ni enums del ORM en componentes del navegador. Tampoco `@rentavle/emails` (usa `node:crypto`): pasar textos y etiquetas por props.
+- **Emails:** en local van a Mailpit (http://127.0.0.1:55324); nunca configurar `RESEND_API_KEY` real en desarrollo.
 - **Idioma:** UI y documentación en español rioplatense; código, tablas y columnas en inglés.
 - Si una decisión de producto cambia, actualizar `docs/` en el mismo cambio.

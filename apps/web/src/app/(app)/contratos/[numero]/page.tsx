@@ -8,7 +8,9 @@ import { PageLoading } from "@/components/page-loading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CommunicationsCard } from "@/components/communications-card";
 import { getActiveMembership } from "@/lib/auth";
+import { communicationHistory } from "@/lib/communications";
 import { currentMonthIn, formatDate, formatMonth, todayIn } from "@/lib/dates";
 import { formatYearMonth } from "@rentavle/domain";
 import { clientName, formatAddress } from "@/lib/format";
@@ -75,9 +77,10 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
   const tenants = parties.filter((p) => p.role === "tenant");
   const guarantors = parties.filter((p) => p.role === "guarantor");
   const current = [...periods].reverse().find((p) => p.amount !== null);
-  const [{ charges, templates }, payments] = await Promise.all([
+  const [{ charges, templates }, payments, history] = await Promise.all([
     getContractCharges(contract.id),
     listMovements({ contractId: contract.id, limit: 50 }),
+    communicationHistory({ contractId: contract.id }),
   ]);
   const hasOpenDebts = charges.some((c) => (c.status === "pending" || c.status === "partially_paid") && c.debtor === "tenant");
 
@@ -335,6 +338,8 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
           </ol>
         </CardContent>
       </Card>
+
+      <CommunicationsCard rows={history} timezone={timezone} />
     </div>
   );
 }

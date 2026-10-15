@@ -162,6 +162,20 @@
       "when": 1792052199107,
       "tag": "20261015081639_protect_organizations",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792087356730,
+      "tag": "20261015180236_communications",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792087358416,
+      "tag": "20261015180238_rls_communications",
+      "breakpoints": true
     }
   ]
 }

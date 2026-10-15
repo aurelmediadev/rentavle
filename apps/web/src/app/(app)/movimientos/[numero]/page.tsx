@@ -12,6 +12,9 @@ import { clientName, formatAddress } from "@/lib/format";
 import { formatMoney } from "@/lib/numbers";
 import { getMovementByNumber } from "../data";
 import { MOVEMENT_TYPE, PAYMENT_METHOD } from "../labels";
+import { CommunicationsCard } from "@/components/communications-card";
+import { getActiveMembership } from "@/lib/auth";
+import { communicationHistory, documentDraft } from "@/lib/communications";
 import { DocumentCard } from "./document-card";
 import { ReversePaymentDialog } from "./reverse-dialog";
 
@@ -42,6 +45,11 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
   if (!data) notFound();
   const { movement, contractNumber, property, client, account, toAccount, allocations, credits, lines, ownerFees, entries, document } = data;
   const isSettlement = movement.type === "owner_settlement";
+  const [draft, history, { timezone }] = await Promise.all([
+    document ? documentDraft(document.id) : null,
+    communicationHistory({ movementId: movement.id }),
+    getActiveMembership(),
+  ]);
   const isManual = movement.type === "manual_income" || movement.type === "manual_expense" || movement.type === "transfer";
   const fmt = (v: string) => formatMoney(v, movement.currency);
 
@@ -113,7 +121,7 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
         </CardContent>
       </Card>
 
-      {document && <DocumentCard document={document} />}
+      {document && <DocumentCard document={document} draft={draft} />}
 
       {isSettlement ? (
         <Card>
@@ -254,6 +262,8 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
           )}
         </CardContent>
       </Card>
+
+      {document && <CommunicationsCard rows={history} timezone={timezone} />}
     </div>
   );
 }

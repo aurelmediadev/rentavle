@@ -9,7 +9,9 @@ import { PageLoading } from "@/components/page-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CommunicationsCard } from "@/components/communications-card";
 import { getActiveMembership } from "@/lib/auth";
+import { communicationHistory } from "@/lib/communications";
 import { countryFormOptions, optionLabel } from "@/lib/country";
 import { clientName, formatAddress } from "@/lib/format";
 import { getClientByNumber } from "../data";
@@ -39,8 +41,9 @@ function Item({ label, value }: { label: string; value: React.ReactNode }) {
 async function ClientDetail({ params }: Pick<PageProps<"/clientes/[numero]">, "params">) {
   const number = Number((await params).numero);
   if (!Number.isInteger(number) || number < 1) notFound();
-  const [result, { countryCode }] = await Promise.all([getClientByNumber(number), getActiveMembership()]);
+  const [result, { countryCode, timezone }] = await Promise.all([getClientByNumber(number), getActiveMembership()]);
   if (!result) notFound();
+  const history = await communicationHistory({ clientId: result.client.id });
 
   const { client, contacts, accounts, owned } = result;
   const pack = getCountryPack(countryCode);
@@ -179,6 +182,8 @@ async function ClientDetail({ params }: Pick<PageProps<"/clientes/[numero]">, "p
           <BankAccountForm clientId={client.id} currencies={countryFormOptions(countryCode).currencies} />
         </CardContent>
       </Card>
+
+      <CommunicationsCard rows={history} timezone={timezone} />
     </div>
   );
 }

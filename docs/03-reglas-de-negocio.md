@@ -156,6 +156,13 @@ Ejemplo (contrato de $500.000 con 10% de honorarios, pagado el día 14 con punit
 - Plantillas editables con variables; vista previa con datos reales antes de enviar.
 - Nunca se envía dos veces el mismo aviso automático para el mismo contrato y período (clave única).
 - Cada envío queda en el historial con su estado (enviado, entregado, rebotado, leído si el canal lo informa).
+- **Implementado:**
+  - Los avisos automáticos (recordatorio, mora, aumento, vencimiento) **empiezan apagados**: cada inmobiliaria los activa en Configuración › Mensajes, con sus días. Así no se le escribe a ningún inquilino antes de que la inmobiliaria revise sus contactos.
+  - Las reglas de cuándo corresponde cada aviso son puras (`packages/domain/src/notices.ts`). Cada umbral solo se dispara durante 3 días después de alcanzarse: activar los avisos (o un día sin correr el job) no manda avisos viejos.
+  - Recordatorio y mora van **uno por contrato y vencimiento**, listando todo lo que vence ese día (alquiler, expensas…). Solo deudas confirmadas; se dejan de mandar cuando se pagan. El aumento se avisa cuando el nuevo monto está calculado (no el provisorio).
+  - Si el cliente no tiene email, el aviso queda en el historial como "no enviado" (sin reintentos); los envíos que fallan se reintentan hasta 3 veces.
+  - Recibos y liquidaciones se envían a mano desde el movimiento: por email (PDF adjunto, link en el texto y copia oculta a la inmobiliaria si tiene email) o por WhatsApp (`wa.me` con el mensaje armado; el número se normaliza en `packages/country`). El WhatsApp se registra como "abierto": no hay forma de saber si se envió.
+  - Plantillas por defecto en `packages/emails`; cada inmobiliaria puede reemplazarlas (`message_templates`) y volver al original. El editor rechaza variables que el mensaje no tiene.
 
 ## 9. Contabilidad (partida doble)
 

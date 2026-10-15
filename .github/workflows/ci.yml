@@ -23,7 +23,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm --filter @rentavle/domain --filter @rentavle/country --filter @rentavle/pdf test
+      - run: pnpm --filter @rentavle/domain --filter @rentavle/country --filter @rentavle/pdf --filter @rentavle/emails test
 
   database:
     name: Base de datos (migraciones y RLS)

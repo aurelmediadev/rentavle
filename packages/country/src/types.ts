@@ -46,6 +46,8 @@ export interface CountryPack {
   /** Index series code preselected for new contracts (index_series.code). */
   readonly defaultIndexSeries: string;
   readonly indexSources: readonly IndexSource[];
+  /** Phone as wa.me expects it (digits with country code), or null if it can't be read. */
+  whatsappNumber(phone: string): string | null;
   /** Amount in words for receipts, with the currency: "pesos quinientos mil con 00/100". */
   amountInWords(amount: string, currency: string): string;
   /** First-level subdivisions (provinces, states, regions). */

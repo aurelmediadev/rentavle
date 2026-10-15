@@ -5,7 +5,9 @@
 import { createDbClients } from '@rentavle/db';
 import { applyRentUpdates } from './apply-rent-updates';
 import { fetchIndexes } from './fetch-indexes';
+import { createMailer } from '@rentavle/emails';
 import { generateCharges } from './generate-charges';
+import { sendCommunications } from './send-communications';
 
 const db = createDbClients(process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:55322/postgres');
 const command = process.argv[2];
@@ -18,8 +20,10 @@ try {
     console.table(await applyRentUpdates(db.admin, { now }));
   } else if (command === 'generate-charges') {
     console.table(await generateCharges(db.admin, { now }));
+  } else if (command === 'send-communications') {
+    console.table(await sendCommunications(db.admin, { now, mailer: createMailer() }));
   } else {
-    console.error('Usage: cli.ts fetch-indexes | apply-rent-updates | generate-charges');
+    console.error('Usage: cli.ts fetch-indexes | apply-rent-updates | generate-charges | send-communications');
     process.exitCode = 1;
   }
 } finally {

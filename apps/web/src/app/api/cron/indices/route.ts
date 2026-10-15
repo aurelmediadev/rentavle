@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import { applyRentUpdates, fetchIndexes, generateCharges } from "@rentavle/jobs";
+import { isAuthorizedCron } from "@/lib/cron";
 import { db } from "@/lib/db";
 
 /**
@@ -9,9 +9,7 @@ import { db } from "@/lib/db";
  * Both steps are idempotent, so retries are safe.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  const given = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (!secret || given.length !== secret.length || !timingSafeEqual(Buffer.from(given), Buffer.from(secret))) {
+  if (!isAuthorizedCron(request)) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 

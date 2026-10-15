@@ -22,7 +22,7 @@
 | Archivos | Supabase Storage (buckets privados, URLs firmadas) | Contratos, comprobantes, PDFs |
 | Trabajos en segundo plano | Trigger.dev | Tareas programadas y colas con reintentos (deudas mensuales, índices, avisos, PDFs, IA) |
 | PDFs | `@react-pdf/renderer` en el servidor | Plantillas en React, mismo diseño en todos los documentos |
-| Email | Resend + React Email | Envío transaccional con webhooks de entrega/rebote |
+| Email | Resend (API HTTP) | Envío transaccional con webhooks de entrega/rebote. Plantillas de texto con variables y un diseño HTML único (`packages/emails`); en local, Mailpit |
 | WhatsApp | Links `wa.me` (MVP) → Meta WhatsApp Cloud API (F2) | Plantillas aprobadas para avisos automáticos |
 | Pagos | MercadoPago (suscripciones del SaaS y cobro online a inquilinos) | Disponible en AR, MX, CL, CO, UY, PE, BR |
 | IA | Anthropic Claude API (extracción de datos de contratos, con salida estructurada) | Lee PDF y escaneos; validado contra esquema Zod |
@@ -56,7 +56,7 @@ rentavle/
 │   ├── db/                   # esquema Drizzle, migraciones, políticas RLS, seeds
 │   ├── country/              # adaptadores por país (índices, fiscal, documentos, formatos)
 │   ├── pdf/                  # plantillas de documentos
-│   ├── emails/               # plantillas React Email
+│   ├── emails/               # plantillas de mensajes, diseño HTML, envío (Resend/Mailpit) y webhook
 │   └── jobs/                 # tareas de Trigger.dev
 ├── docs/                     # esta documentación
 └── CLAUDE.md
@@ -120,7 +120,7 @@ Cada integración externa va detrás de una interfaz con una implementación fal
 | `fetch-indexes` | Diaria (implementada) | Descarga IPC (completo) e ICL (incremental, 90 días hacia atrás) y los guarda; Casa Propia es manual |
 | `generate-monthly-charges` | Diaria (procesa organizaciones cuyo mes comenzó en su zona horaria) | Crea deudas de alquiler y gastos recurrentes del mes |
 | `apply-rent-updates` | Diaria (implementada) | Calcula los períodos que empiezan este mes o el próximo; recalcula los provisorios |
-| `send-scheduled-communications` | Cada hora | Envía recordatorios y avisos de mora que corresponden; usa `dedupe_key` |
+| `send-communications` | Diario (`/api/cron/comunicaciones`, 9 h de Argentina, después de generar las deudas) | Envía recordatorios, avisos de mora, aumentos y vencimientos que corresponden; usa `dedupe_key` y reintenta hasta 3 veces los envíos fallidos |
 | `contract-expiry-alerts` | Diaria | Alertas de vencimiento a 60/30 días |
 | `render-document` | Por demanda | Genera el PDF y lo guarda en Storage |
 | `extract-contract` | Por demanda | IA sobre el archivo subido → borrador de contrato para revisar |

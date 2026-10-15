@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/indices",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/comunicaciones",
+      "schedule": "0 12 * * *"
     }
   ]
 }

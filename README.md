@@ -46,6 +46,7 @@ Los puertos usan el rango 553xx para no chocar con otros proyectos de Supabase e
 | `pnpm --filter @rentavle/jobs fetch-indexes` | Descarga IPC e ICL oficiales a la base local (correr después de cada `db reset`) |
 | `pnpm --filter @rentavle/jobs apply-rent-updates` | Calcula los aumentos que corresponden |
 | `pnpm --filter @rentavle/jobs generate-charges` | Genera las deudas del mes |
+| `pnpm --filter @rentavle/jobs send-communications` | Envía los avisos automáticos que corresponden hoy (en local llegan a Mailpit: http://127.0.0.1:55324) |
 | `pnpm --filter @rentavle/jobs seed-demo` | Crea la inmobiliaria de demostración (necesita `SUPABASE_SERVICE_ROLE_KEY` de `supabase status`; datos de acceso en `packages/jobs/src/seed-demo-credentials.ts`) |
 
 ## Estructura
