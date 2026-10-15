@@ -15,8 +15,11 @@ import {
   insertContract,
   setFinished,
 } from "./data";
+import { READ_ONLY_MESSAGE, readOnlyBlock } from "@/lib/subscription";
 
 export async function createContract(_: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = parseContractForm(formData);
   if (!parsed.ok) return parsed.state;
 
@@ -50,6 +53,8 @@ export async function changeContractEndDate(
   _: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = endDateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { fieldErrors: { endDate: ["Elegí una fecha"] }, values: formValues(formData) };
   try {
@@ -65,6 +70,7 @@ export async function changeContractEndDate(
 }
 
 export async function cancelContractTermination(contractId: string): Promise<{ error?: string }> {
+  if (await readOnlyBlock()) return { error: READ_ONLY_MESSAGE };
   try {
     await cancelTermination(contractId);
     await generateCharges(db.admin, { now: new Date(), contractId });
@@ -77,6 +83,7 @@ export async function cancelContractTermination(contractId: string): Promise<{ e
 }
 
 export async function finishContract(contractId: string, finished: boolean): Promise<{ error?: string }> {
+  if (await readOnlyBlock()) return { error: READ_ONLY_MESSAGE };
   try {
     await setFinished(contractId, finished, null);
     if (!finished) await generateCharges(db.admin, { now: new Date(), contractId });

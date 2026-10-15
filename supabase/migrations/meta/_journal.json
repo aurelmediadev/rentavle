@@ -176,6 +176,34 @@
       "when": 1792087358416,
       "tag": "20261015180238_rls_communications",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1792091102658,
+      "tag": "20261015190502_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792091104094,
+      "tag": "20261015190504_rls_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1792091261198,
+      "tag": "20261015190741_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1792091262667,
+      "tag": "20261015190742_rls_subscriptions",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { type FormState, formValues } from "@/lib/forms";
 import { SettlementError, recordSettlement } from "./data";
+import { readOnlyBlock } from "@/lib/subscription";
 
 const schema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
@@ -19,6 +20,8 @@ const schema = z.object({
 });
 
 export async function createSettlement(ownerId: string, currency: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = schema.safeParse(Object.fromEntries(formData));
   const allocationIds = formData.getAll("allocationId").map(String);
   if (!parsed.success) {

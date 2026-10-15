@@ -8,6 +8,7 @@ import { type NoticeSettings, parseNoticeSettings } from "@rentavle/domain";
 import { type CommunicationType, DEFAULT_TEMPLATES, communicationTypes, unknownVariables } from "@rentavle/emails";
 import { asUser, requireRole } from "@/lib/auth";
 import { type FormState, formValues } from "@/lib/forms";
+import { readOnlyBlock } from "@/lib/subscription";
 
 const { organizations, messageTemplates } = schema;
 
@@ -60,6 +61,8 @@ const templateSchema = z.object({
 });
 
 export async function saveTemplate(type: CommunicationType, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   if (!communicationTypes.includes(type)) return { message: "Tipo inválido" };
   const parsed = templateSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -100,6 +103,8 @@ export async function saveTemplate(type: CommunicationType, _: FormState, formDa
 }
 
 export async function resetTemplate(type: CommunicationType): Promise<FormState> {
+  const blocked = await readOnlyBlock();
+  if (blocked) return blocked;
   const { organizationId } = await requireRole("admin");
   await asUser((tx) => tx.delete(messageTemplates).where(and(eq(messageTemplates.organizationId, organizationId), eq(messageTemplates.type, type))));
   revalidatePath("/configuracion/mensajes");

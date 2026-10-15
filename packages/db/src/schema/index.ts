@@ -9,3 +9,5 @@ export * from './movements';
 export * from './ledger';
 export * from './documents';
 export * from './communications';
+export * from './plans';
+export * from './subscriptions';

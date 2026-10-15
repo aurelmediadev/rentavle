@@ -36,6 +36,8 @@ async function agency(opts: { tenantEmail?: string | null; agencyEmail?: string 
     .update(organizations)
     .set({
       email: opts.agencyEmail ?? null,
+      // Subscribed: the tests simulate dates after a trial would have ended.
+      subscriptionStatus: 'active',
       settings: { notices: { paymentReminder: true, lateNotice: true, amountUpdate: true, contractExpiry: true } },
     })
     .where(eq(organizations.id, orgId));
@@ -86,6 +88,13 @@ describe('automatic notices', () => {
     await db.admin.update(organizations).set({ settings: {} }).where(eq(organizations.id, a.orgId));
     const mailer = fakeMailer();
     expect(await run(a.orgId, '2026-10-08', mailer)).toMatchObject({ organizations: 0, sent: 0 });
+  });
+
+  it('sends nothing for read-only accounts', async () => {
+    const a = await agency();
+    await debt(a);
+    await db.admin.update(organizations).set({ subscriptionStatus: 'cancelled' }).where(eq(organizations.id, a.orgId));
+    expect(await run(a.orgId, '2026-10-08', fakeMailer())).toMatchObject({ organizations: 0, sent: 0 });
   });
 
   it('reminds once before the due date, listing everything due that day', async () => {

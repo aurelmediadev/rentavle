@@ -8,6 +8,15 @@ import { expect } from 'vitest';
 import { createDbClients, type JwtClaims } from '../src/client';
 import { invitations, organizations } from '../src/schema';
 
+/** A valid, random company CUIT: each organization needs its own (one trial per CUIT). */
+export function randomCuit(): string {
+  const weights = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+  const body = `30${String(randomBytes(4).readUInt32BE() % 1e8).padStart(8, '0')}`;
+  const total = weights.reduce((acc, w, i) => acc + w * Number(body[i]), 0);
+  const raw = 11 - (total % 11);
+  return `${body}${raw === 11 ? 0 : raw === 10 ? 9 : raw}`;
+}
+
 export function createTestDb() {
   const db = createDbClients(
     process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:55322/postgres',
@@ -30,7 +39,7 @@ export function createTestDb() {
   async function createOrganization(user: TestUser, name: string): Promise<string> {
     const id = await db.withUser(user.claims, async (tx) => {
       const rows = await tx.execute<{ id: string }>(sql`
-        select public.create_organization(${name}, 'AR', 'ARS', 'America/Argentina/Buenos_Aires', 'es-AR') as id
+        select public.create_organization(${name}, 'AR', 'ARS', 'America/Argentina/Buenos_Aires', 'es-AR', ${randomCuit()}) as id
       `);
       return rows[0]!.id;
     });

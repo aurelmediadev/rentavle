@@ -9,8 +9,11 @@ import { asUser, getActiveMembership } from "@/lib/auth";
 import { type FormState, validationError } from "@/lib/forms";
 import { parseClientForm } from "./client-input";
 import { insertClient, setClientArchived, updateClient } from "./data";
+import { assertWritable, readOnlyBlock } from "@/lib/subscription";
 
 export async function createClient(_: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const { countryCode } = await getActiveMembership();
   const parsed = parseClientForm(formData, countryCode);
   if (!parsed.ok) return parsed.state;
@@ -21,6 +24,8 @@ export async function createClient(_: FormState, formData: FormData): Promise<Fo
 }
 
 export async function editClient(clientId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const { countryCode } = await getActiveMembership();
   const parsed = parseClientForm(formData, countryCode);
   if (!parsed.ok) return parsed.state;
@@ -32,6 +37,7 @@ export async function editClient(clientId: string, _: FormState, formData: FormD
 }
 
 export async function archiveClient(clientId: string, archived: boolean) {
+  await assertWritable();
   await setClientArchived(clientId, archived);
   revalidatePath("/clientes");
 }
@@ -55,6 +61,8 @@ const bankAccountSchema = z
   .refine((v) => v.cbu || v.alias, { message: "Ingresá CBU/CVU o alias", path: ["cbu"] });
 
 export async function addBankAccount(clientId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = bankAccountSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return validationError(parsed.error, formData);
 
@@ -76,6 +84,7 @@ export async function addBankAccount(clientId: string, _: FormState, formData: F
 }
 
 export async function removeBankAccount(bankAccountId: string) {
+  await assertWritable();
   const { organizationId } = await getActiveMembership();
   await asUser((tx) =>
     tx

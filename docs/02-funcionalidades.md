@@ -179,6 +179,13 @@ Un cliente es una persona o empresa. Su rol (propietario, inquilino, garante) de
 | Calculadora pública de alquileres (IPC/ICL) para SEO | F2 |
 | API pública + webhooks | F4 |
 
+> **Implementado (plataforma):**
+> - Planes en la tabla `plans` (precios provisorios de [01](01-vision-y-producto.md)); el límite de contratos activos lo controla la base al confirmar cada operación (prueba: 10).
+> - Prueba de 21 días fija (la decide la base, no quien crea la cuenta), con CUIT obligatorio y único y email confirmado. **Falta** verificar el teléfono: requiere elegir un proveedor de SMS/WhatsApp.
+> - Cuenta vencida o cancelada: solo lectura, aplicado en la base para todas las tablas de negocio; la app muestra un aviso y las acciones devuelven un mensaje. La exportación completa (JSON, `/api/exportar`) sigue disponible.
+> - Suscripción con débito automático de MercadoPago (`packages/billing`): el estado llega por webhook firmado y siempre se vuelve a leer de la API de MercadoPago. Sin credenciales, fuera de producción, un simulador local reemplaza al checkout. Pago anual con 2 meses gratis; cambiar de plan cancela el débito anterior.
+> - **Falta** el panel interno de administración.
+
 ## Fuera de alcance (por ahora)
 
 - Gestión de ventas, captación y publicación de propiedades en portales (otro producto).

@@ -8,6 +8,7 @@ import { asUser, getActiveMembership } from "@/lib/auth";
 import { CommunicationError, prepareDocumentWhatsapp, sendDocumentEmail } from "@/lib/communications";
 import { createDocumentLink } from "@/lib/documents";
 import { type FormState, formValues, validationError } from "@/lib/forms";
+import { READ_ONLY_MESSAGE, readOnlyBlock } from "@/lib/subscription";
 
 export type ShareResult = { ok: true; url: string; expiresAt: string } | { ok: false; message: string };
 
@@ -32,6 +33,8 @@ const emailSchema = z.object({
 
 /** Emails the document to the chosen addresses (PDF attached, link in the text). */
 export async function emailDocument(documentId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = emailSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return validationError(parsed.error, formData);
   const extra = String(formData.get("extra") ?? "")
@@ -56,6 +59,7 @@ export async function emailDocument(documentId: string, _: FormState, formData: 
 }
 
 export async function whatsappDocument(documentId: string, phone: string, body: string): Promise<ShareResult> {
+  if (await readOnlyBlock()) return { ok: false, message: READ_ONLY_MESSAGE };
   if (body.trim().length < 3) return { ok: false, message: "Escribí el mensaje" };
   try {
     const url = await prepareDocumentWhatsapp({ documentId, phone, body: body.trim() });

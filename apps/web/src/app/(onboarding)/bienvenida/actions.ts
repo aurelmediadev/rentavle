@@ -8,8 +8,6 @@ import { getCountryPack, isCountryCode } from "@rentavle/country";
 import { ACTIVE_ORG_COOKIE, asUser } from "@/lib/auth";
 import { type FormState, formValues, validationError } from "@/lib/forms";
 
-const TRIAL_DAYS = 21;
-
 const schema = z.object({
   name: z.string().trim().min(2, "Ingresá el nombre de la inmobiliaria").max(120),
   country: z.string().refine(isCountryCode, "Elegí un país"),
@@ -32,7 +30,7 @@ export async function createOrganization(_: FormState, formData: FormData): Prom
       const rows = await tx.execute<{ id: string }>(sql`
         select public.create_organization(
           ${parsed.data.name}, ${pack.code}, ${pack.defaultCurrency},
-          ${pack.defaultTimezone}, ${pack.defaultLocale}, ${taxId}, ${TRIAL_DAYS}
+          ${pack.defaultTimezone}, ${pack.defaultLocale}, ${taxId}
         ) as id
       `);
       return rows[0]!.id;

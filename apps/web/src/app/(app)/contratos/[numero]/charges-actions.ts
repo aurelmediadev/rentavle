@@ -11,6 +11,7 @@ import { asUser, getActiveMembership } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type FormState, formValues, validationError } from "@/lib/forms";
 import { parseLocaleDecimal } from "@/lib/numbers";
+import { assertWritable, readOnlyBlock } from "@/lib/subscription";
 
 const { charges, recurringCharges, contracts } = schema;
 
@@ -51,6 +52,8 @@ const oneOffSchema = z
 
 /** Cargo o descuento único (a discount is stored as a negative amount). */
 export async function addOneOffCharge(contractId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = oneOffSchema.safeParse(Object.fromEntries(formData));
   const { amount, error } = amountError(formData.get("amount"), false);
   if (!parsed.success || error) {
@@ -101,6 +104,8 @@ const recurringSchema = z
   .refine((v) => !v.endMonth || v.endMonth >= v.startMonth, { message: "Tiene que ser posterior al inicio", path: ["endMonth"] });
 
 export async function addRecurringCharge(contractId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = recurringSchema.safeParse(Object.fromEntries(formData));
   const { amount, error } = amountError(formData.get("amount"), false);
   if (!parsed.success || error) {
@@ -132,6 +137,7 @@ export async function addRecurringCharge(contractId: string, _: FormState, formD
 }
 
 export async function archiveRecurringCharge(recurringChargeId: string) {
+  await assertWritable();
   const { organizationId } = await getActiveMembership();
   await asUser((tx) =>
     tx
@@ -147,6 +153,8 @@ export async function archiveRecurringCharge(recurringChargeId: string) {
  * bill arrives. For recurring debts it also becomes the estimate for next months.
  */
 export async function confirmChargeAmount(chargeId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const { amount, error } = amountError(formData.get("amount"), true);
   if (error) return { fieldErrors: { amount: [error] }, values: formValues(formData) };
   const { organizationId } = await getActiveMembership();
@@ -172,6 +180,8 @@ export async function confirmChargeAmount(chargeId: string, _: FormState, formDa
 const voidSchema = z.object({ reason: z.string().trim().min(3, "Contá brevemente el motivo") });
 
 export async function voidCharge(chargeId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = voidSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return validationError(parsed.error, formData);
   const { organizationId } = await getActiveMembership();
@@ -189,6 +199,7 @@ export async function voidCharge(chargeId: string, _: FormState, formData: FormD
 
 /** "Cargar deudas del próximo mes": creates next month's debts now. */
 export async function generateNextMonth(contractId: string) {
+  await assertWritable();
   const contract = await loadContract(contractId);
   const result = await generateCharges(db.admin, { now: new Date(), contractId: contract.id, includeNextMonth: true });
   revalidatePath("/contratos");

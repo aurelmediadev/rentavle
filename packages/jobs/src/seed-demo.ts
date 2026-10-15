@@ -63,7 +63,7 @@ try {
   const claims = { sub: user.id, role: 'authenticated', email: DEMO_EMAIL };
   const orgId = await db.withUser(claims, async (tx) => {
     const rows = await tx.execute<{ id: string }>(sql`
-      select public.create_organization('Inmobiliaria Demo', 'AR', 'ARS', 'America/Argentina/Buenos_Aires', 'es-AR', '30712345671', 21) as id
+      select public.create_organization('Inmobiliaria Demo', 'AR', 'ARS', 'America/Argentina/Buenos_Aires', 'es-AR', '30712345671') as id
     `);
     return rows[0]!.id;
   });

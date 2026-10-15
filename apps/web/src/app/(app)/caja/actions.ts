@@ -7,6 +7,7 @@ import { z } from "zod";
 import { type FormState, formValues, validationError } from "@/lib/forms";
 import { parseLocaleDecimal } from "@/lib/numbers";
 import { CashError, archiveCashAccount, createCashAccount, recordManualMovement } from "./data";
+import { readOnlyBlock } from "@/lib/subscription";
 
 const movementSchema = z.object({
   type: z.enum(["manual_income", "manual_expense", "transfer"]),
@@ -22,6 +23,8 @@ function dbMessage(error: unknown) {
 }
 
 export async function createManualMovement(_: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = movementSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return validationError(parsed.error, formData);
   const amount = parseLocaleDecimal(parsed.data.amount);
@@ -54,6 +57,8 @@ const accountSchema = z.object({
 });
 
 export async function createCashAccountAction(_: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = accountSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return validationError(parsed.error, formData);
   try {
@@ -68,6 +73,8 @@ export async function createCashAccountAction(_: FormState, formData: FormData):
 }
 
 export async function archiveCashAccountAction(cashAccountId: string): Promise<FormState> {
+  const blocked = await readOnlyBlock();
+  if (blocked) return blocked;
   try {
     await archiveCashAccount(cashAccountId);
   } catch (error) {

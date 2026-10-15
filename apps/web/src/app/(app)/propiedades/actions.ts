@@ -5,8 +5,11 @@ import { redirect } from "next/navigation";
 import type { FormState } from "@/lib/forms";
 import { insertProperty, setPropertyArchived, updateProperty } from "./data";
 import { parsePropertyForm } from "./property-input";
+import { assertWritable, readOnlyBlock } from "@/lib/subscription";
 
 export async function createProperty(_: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = parsePropertyForm(formData);
   if (!parsed.ok) return parsed.state;
 
@@ -16,6 +19,8 @@ export async function createProperty(_: FormState, formData: FormData): Promise<
 }
 
 export async function editProperty(propertyId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = parsePropertyForm(formData);
   if (!parsed.ok) return parsed.state;
 
@@ -26,6 +31,7 @@ export async function editProperty(propertyId: string, _: FormState, formData: F
 }
 
 export async function archiveProperty(propertyId: string, archived: boolean) {
+  await assertWritable();
   await setPropertyArchived(propertyId, archived);
   revalidatePath("/propiedades");
 }

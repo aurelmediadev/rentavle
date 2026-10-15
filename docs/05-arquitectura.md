@@ -102,7 +102,7 @@ interface CountryPack {
 |---|---|---|
 | INDEC / BCRA / datos.gob.ar | Descarga diaria de IPC, ICL, Casa Propia, tipos de cambio | MVP |
 | Resend | Emails transaccionales y avisos | MVP |
-| MercadoPago Suscripciones | Cobro del plan a las inmobiliarias | MVP |
+| MercadoPago Suscripciones | Cobro del plan a las inmobiliarias (`packages/billing`: preapproval, webhook `/api/webhooks/mercadopago` con firma `x-signature`; sin credenciales, simulador local) | MVP |
 | Claude API | Extracción de datos de contratos (PDF/Word/escaneo) | F2 |
 | WhatsApp Cloud API | Avisos automáticos con plantillas aprobadas | F2 |
 | MercadoPago Checkout | Pago online del inquilino; webhook concilia y genera el cobro | F3 |

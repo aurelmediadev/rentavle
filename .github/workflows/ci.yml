@@ -38,7 +38,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Start Postgres with migrations
         run: pnpm exec supabase db start
-      - run: pnpm --filter @rentavle/db --filter @rentavle/jobs test
+      - run: pnpm --filter @rentavle/db --filter @rentavle/jobs --filter @rentavle/billing test
 
   e2e:
     name: End-to-end

@@ -3,6 +3,7 @@ import {
   char,
   check,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -13,6 +14,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { authUsers } from 'drizzle-orm/supabase';
 import { id, timestamps } from './_shared';
+import { plans } from './plans';
 
 // Row Level Security policies for these tables are in supabase/migrations
 // (custom "rls_organizations" migration), not here.
@@ -58,6 +60,10 @@ export const organizations = pgTable(
     signaturePath: text(),
     settings: jsonb().notNull().default({}),
     subscriptionStatus: subscriptionStatus().notNull().default('trialing'),
+    /** Plan being paid (null during the trial, or for pilots with free access). */
+    planId: uuid().references(() => plans.id, { onDelete: 'restrict' }),
+    /** Extra blocks of contracts on top of the plan (biggest plan only). */
+    extraContractBlocks: integer().notNull().default(0),
     trialEndsAt: timestamp({ withTimezone: true }),
     onboardingCompletedAt: timestamp({ withTimezone: true }),
     createdBy: uuid().references(() => authUsers.id, { onDelete: 'set null' }),

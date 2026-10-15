@@ -10,12 +10,14 @@ import { asUser, getActiveMembership, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type FormState, formValues } from "@/lib/forms";
 import { parseLocaleDecimal } from "@/lib/numbers";
+import { assertWritable, readOnlyBlock } from "@/lib/subscription";
 
 /**
  * Runs the rent update job for the active organization only. The job writes
  * with the admin client; the membership check above scopes it to this agency.
  */
 export async function recalculateUpdates(): Promise<{ calculated: number; waiting: number }> {
+  await assertWritable();
   const { organizationId } = await getActiveMembership();
   const result = await applyRentUpdates(db.admin, { now: new Date(), organizationId });
   // Confirms rent debts that were waiting for these amounts.
@@ -31,6 +33,8 @@ const adjustSchema = z.object({
 
 /** Sets an update period's amount by hand; the job never overwrites it afterwards. */
 export async function adjustPeriodAmount(periodId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = adjustSchema.safeParse(Object.fromEntries(formData));
   const amount = parseLocaleDecimal(String(formData.get("amount") ?? ""));
   const fieldErrors: Record<string, string[]> = {};

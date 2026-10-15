@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 import { and, eq, gte, inArray, isNull, lt, lte, sql } from 'drizzle-orm';
 import { type Database, schema } from '@rentavle/db';
-import { type NoticeSettings, addDaysIso, amountUpdateNotice, contractExpiryNotice, debtNotice, parseNoticeSettings } from '@rentavle/domain';
+import { type NoticeSettings, accessFor, addDaysIso, amountUpdateNotice, contractExpiryNotice, debtNotice, parseNoticeSettings } from '@rentavle/domain';
 import {
   type CommunicationType,
   DEFAULT_TEMPLATES,
@@ -88,6 +88,8 @@ export async function sendCommunications(db: Database, opts: SendCommunicationsO
   for (const org of orgs) {
     const settings = parseNoticeSettings((org.settings as { notices?: unknown } | null)?.notices);
     if (!settings.paymentReminder && !settings.lateNotice && !settings.amountUpdate && !settings.contractExpiry) continue;
+    // Read-only accounts (trial ended, cancelled) send nothing on their behalf.
+    if (!accessFor({ status: org.subscriptionStatus, trialEndsAt: org.trialEndsAt }, opts.now).writable) continue;
     result.organizations++;
     const today = todayIn(opts.now, org.timezone);
     const fmt = formatters(org.locale);

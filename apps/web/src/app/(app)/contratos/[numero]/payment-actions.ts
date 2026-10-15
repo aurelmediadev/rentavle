@@ -6,6 +6,7 @@ import { z } from "zod";
 import { type FormState, formValues } from "@/lib/forms";
 import { parseLocaleDecimal } from "@/lib/numbers";
 import { PaymentError, recordTenantPayment, reverseMovement } from "./payments-data";
+import { readOnlyBlock } from "@/lib/subscription";
 
 const schema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
@@ -20,6 +21,8 @@ const schema = z.object({
 });
 
 export async function recordPayment(contractId: string, contractNumber: number, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = schema.safeParse(Object.fromEntries(formData));
   const chargeIds = formData.getAll("chargeId").map(String);
   const rawReceived = String(formData.get("received") ?? "").trim();
@@ -61,6 +64,8 @@ export async function recordPayment(contractId: string, contractNumber: number, 
 const reverseSchema = z.object({ reason: z.string().trim().min(3, "Contá brevemente el motivo") });
 
 export async function reversePayment(movementId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
   const parsed = reverseSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { fieldErrors: { reason: [parsed.error.issues[0]!.message] }, values: formValues(formData) };
   try {

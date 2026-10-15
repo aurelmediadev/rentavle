@@ -35,7 +35,8 @@
     "zod": "4.6.7",
     "@rentavle/pdf": "workspace:*",
     "@react-pdf/renderer": "4.9.0",
-    "@rentavle/emails": "workspace:*"
+    "@rentavle/emails": "workspace:*",
+    "@rentavle/billing": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
