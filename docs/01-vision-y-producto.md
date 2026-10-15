@@ -57,15 +57,17 @@ Suscripción mensual por organización, escalonada por **contratos activos**, co
 
 **No hay plan gratis permanente** (evita que una misma inmobiliaria abra varias cuentas para no pagar). Solo una prueba gratuita limitada.
 
-Estructura de planes (los precios se definen después de estimar el costo de infraestructura por contrato; ver [05-arquitectura](05-arquitectura.md#costos-de-infraestructura-estimación)). Referencia de mercado: Krenta (oct-2026).
+Estructura de planes. Precios **provisorios** (oct-2026), pensados sobre el costo de infraestructura estimado ([05-arquitectura](05-arquitectura.md#costos-de-infraestructura-estimación): ~USD 100/mes fijo, casi cero por contrato) y la referencia de Krenta:
 
 | Plan | Contratos activos | Precio/mes (ARS) | Referencia Krenta |
 |---|---|---|---|
 | Prueba | hasta 10, por 21 días | $0 | 10 días, 10 contratos |
-| Inicial | hasta 40 | a definir | $40.500 |
-| Profesional | hasta 120 | a definir | $63.000 |
-| Corporativo | hasta 300 | a definir | $83.000 (+100 contratos por $14.000) |
+| Inicial | hasta 40 | $35.000 | $40.500 |
+| Profesional | hasta 120 | $59.000 | $63.000 |
+| Corporativo | hasta 300 | $89.000 (+100 contratos por $15.000) | $83.000 (+100 contratos por $14.000) |
 | A medida | +300 | a cotizar | — |
+
+Criterio: Inicial y Profesional apenas debajo de Krenta (es donde se decide el cambio, y todavía faltan carga con IA y ARCA); Corporativo algo arriba, porque es quien más aprovecha la automatización. Con 3 o 4 suscripciones del plan Inicial se cubre el costo fijo.
 
 **Prueba sin abuso:**
 - Una prueba por CUIT de la inmobiliaria, por email verificado y por teléfono verificado (código por SMS o WhatsApp).
@@ -74,7 +76,7 @@ Estructura de planes (los precios se definen después de estimar el costo de inf
 
 **Otras reglas:**
 - Ajuste trimestral por inflación (como Krenta), comunicado con 30 días de anticipación.
-- Descuento por pago anual.
+- Pago anual: 2 meses gratis (se pagan 10).
 - Facturación electrónica ARCA y WhatsApp automático pueden ser add-ons si el costo por mensaje lo exige.
 - Por país: precios en moneda local, con referencia en USD.
 
@@ -87,7 +89,7 @@ Estructura de planes (los precios se definen después de estimar el costo de inf
 
 ## Pendientes de decidir
 
-- Precios finales (después de estimar costos de infraestructura) y si WhatsApp automático es add-on.
+- Confirmar los precios provisorios con las inmobiliarias piloto; si WhatsApp automático es add-on.
 - Duración final de la prueba (propuesta: 21 días).
 
 ## Decidido

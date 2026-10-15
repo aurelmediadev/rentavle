@@ -69,5 +69,19 @@ test("panel: first steps, then the month's numbers and overdue debts", async ({ 
   await expect(visible(page.getByLabel(/^Cobrado en /))).toHaveText(/^\$\s500\.000$/);
   await expect(visible(page.getByRole("listitem").filter({ hasText: "Pedro Propietario" }))).toContainText("$ 450.000");
 
+  // Global search (Ctrl K): by tenant name, and by number for movements.
+  await page.keyboard.press("Control+k");
+  const search = page.getByRole("dialog");
+  await search.getByRole("combobox").fill("inquilina");
+  await expect(search.getByRole("option", { name: /#1 · Calle Ficticia/ })).toBeVisible();
+  await expect(search.getByRole("option", { name: /Ana Inquilina/ }).last()).toBeVisible();
+  await search.getByRole("combobox").fill("#1");
+  await expect(search.getByRole("option", { name: /Cobro #1/ })).toBeVisible();
+  await search.getByRole("combobox").fill("no existe nada así");
+  await expect(search.getByText("No se encontró nada.")).toBeVisible();
+  await search.getByRole("combobox").fill("ficticia");
+  await search.getByRole("option", { name: /#1 · Calle Ficticia/ }).click();
+  await expect(page).toHaveURL(/\/contratos\/1$/);
+
   expect(problems, "browser errors").toEqual([]);
 });
