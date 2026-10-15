@@ -53,10 +53,11 @@ export function ChargesSection({
   charges: ChargeRow[];
   templates: RecurringChargeRow[];
 }) {
+  // What is still owed: pending debts plus the unpaid part of partially paid ones.
   const pendingBy = (debtor: string) =>
     charges
-      .filter((c) => c.status === "pending" && c.debtor === debtor)
-      .reduce((total, c) => total.plus(c.amount), new Decimal(0));
+      .filter((c) => (c.status === "pending" || c.status === "partially_paid") && c.debtor === debtor)
+      .reduce((total, c) => total.plus(c.outstanding), new Decimal(0));
   const tenantOwes = pendingBy("tenant");
   const ownerOwes = pendingBy("owner");
   const months = [...new Set(charges.map((c) => c.periodMonth))];
@@ -190,7 +191,10 @@ function MonthRows({
             <TableCell className="text-right tabular-nums">{formatMoney(c.amount, currency)}</TableCell>
             <TableCell>
               <span className="flex flex-wrap gap-1">
-                <Badge variant={status.variant}>{status.label}</Badge>
+                <Badge variant={status.variant}>
+                  {status.label}
+                  {c.status === "partially_paid" && ` · debe ${formatMoney(c.outstanding, currency)}`}
+                </Badge>
                 {!c.isConfirmed && c.status === "pending" && <Badge variant="outline">A confirmar</Badge>}
               </span>
             </TableCell>

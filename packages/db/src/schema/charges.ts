@@ -100,6 +100,11 @@ export const charges = pgTable(
     dueDate: date().notNull(),
     recurringChargeId: uuid().references(() => recurringCharges.id, { onDelete: 'set null' }),
     rentPeriodId: uuid().references(() => rentPeriods.id, { onDelete: 'set null' }),
+    /**
+     * Movement that created this debt (late interest charged at payment time, or a
+     * saldo a favor from an overpayment). Reversing the movement voids it.
+     */
+    sourceMovementId: uuid(),
     /** Human-readable calculation, shown on screen and receipts. */
     calcExplanation: text(),
     notes: text(),

@@ -99,7 +99,8 @@ punitorio    = días_de_mora × tasa_diaria × saldo_impago_del_alquiler
 
 - Con "desde el día 1", pagar el día 11 cuenta 11 días; con "desde el vencimiento", cuenta 1. Mostrar siempre la explicación.
 - Se calculan **al momento del pago** (no se acumulan diariamente en la base). En los avisos de mora se muestran estimados a la fecha.
-- Se pueden condonar total o parcialmente con motivo (queda registrado).
+- Se pueden condonar total o parcialmente con motivo (queda registrado). **Implementado:** al cobrar se puede no cobrar los punitorios (condonación total); la parcial queda pendiente.
+- **Implementado** en `packages/domain/src/payments.ts`: los punitorios se crean como deuda propia (`late_interest`) vinculada al cobro, con su explicación.
 - Pago parcial: el saldo restante sigue generando punitorios desde la fecha del último pago.
 
 ## 5. Honorarios de la administración
@@ -129,6 +130,7 @@ Ejemplo (contrato de $500.000 con 10% de honorarios, pagado el día 14 con punit
   - Transferencia al propietario → no entra dinero a la administración; se registra el cobro y el propietario ya recibió su parte (la administración queda acreedora de sus honorarios).
   - Transferencia dividida → honorarios y gastos a la administración; el resto, directo al propietario.
 - Cada cobro genera un **recibo** numerado y sus asientos contables (§9).
+- **Implementado:** la vista previa del navegador y el servidor usan el mismo cálculo (`payment-plan.ts`). La base valida cada imputación (no pagar de más, no cobrar deudas anuladas, mismo contrato) y mantiene el estado de cada deuda. Un cobro no se edita: se **anula** con motivo; su anulación libera las deudas y anula los punitorios y el saldo a favor que generó (si el saldo a favor ya se usó en otro cobro, hay que anular ese primero). Cada inmobiliaria arranca con una "Caja principal". Los asientos contables llegan con el punto 7.
 
 ## 7. Liquidaciones al propietario
 

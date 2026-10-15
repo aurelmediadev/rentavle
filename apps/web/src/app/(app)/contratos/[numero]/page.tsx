@@ -24,6 +24,10 @@ import {
 } from "../labels";
 import { contractStatus } from "../status";
 import { ContractActions } from "./contract-actions";
+import { listMovements } from "../../movimientos/data";
+import { MovementsTable } from "../../movimientos/movements-table";
+import { Button } from "@/components/ui/button";
+import { HandCoins } from "lucide-react";
 import { getContractCharges } from "./charges-data";
 import { ChargesSection } from "./charges-section";
 import { AdjustPeriodDialog } from "../actualizaciones/update-controls";
@@ -71,7 +75,11 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
   const tenants = parties.filter((p) => p.role === "tenant");
   const guarantors = parties.filter((p) => p.role === "guarantor");
   const current = [...periods].reverse().find((p) => p.amount !== null);
-  const { charges, templates } = await getContractCharges(contract.id);
+  const [{ charges, templates }, payments] = await Promise.all([
+    getContractCharges(contract.id),
+    listMovements({ contractId: contract.id, limit: 50 }),
+  ]);
+  const hasOpenDebts = charges.some((c) => (c.status === "pending" || c.status === "partially_paid") && c.debtor === "tenant");
 
   const updateText =
     contract.updateMode === "none"
@@ -92,6 +100,14 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
         }
         description={`Contrato #${contract.number} · ${formatDate(contract.startDate)} – ${formatDate(contract.endDate)} (${durationLabel(term)}, ${installmentCount(term)} cuotas)`}
         actions={
+          <>
+          {hasOpenDebts && (
+            <Button asChild>
+              <Link href={`/contratos/${contract.number}/cobrar`}>
+                <HandCoins /> Registrar cobro
+              </Link>
+            </Button>
+          )}
           <ContractActions
             contractId={contract.id}
             number={contract.number}
@@ -99,6 +115,7 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
             endDate={contract.endDate}
             hasTermination={contract.endDate < contract.originalEndDate}
           />
+          </>
         }
       />
 
@@ -215,6 +232,17 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
         charges={charges}
         templates={templates}
       />
+
+      {payments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cobros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MovementsTable rows={payments} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -1,0 +1,1 @@
+ALTER TABLE "charges" ADD COLUMN "source_movement_id" uuid;
