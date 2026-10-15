@@ -35,6 +35,8 @@ export const paymentMethod = pgEnum('payment_method', [
   'transfer_to_owner',
   'split_transfer',
   'online',
+  /** Settlements: the agency transfers the owner's money. */
+  'transfer_from_admin',
 ]);
 
 /** Where the agency's money is: physical cash boxes and bank accounts. */
@@ -119,3 +121,38 @@ export const chargeAllocations = pgTable(
   ],
 ).enableRLS();
 
+
+/**
+ * What an owner settlement paid: one line per tenant allocation and owner
+ * (co-owners get one line each). A tenant allocation is settled at most once per
+ * owner while the settlement isn't annulled (checked by trigger).
+ */
+export const settlementLines = pgTable(
+  'settlement_lines',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    settlementId: uuid()
+      .notNull()
+      .references(() => movements.id, { onDelete: 'cascade' }),
+    allocationId: uuid()
+      .notNull()
+      .references(() => chargeAllocations.id, { onDelete: 'restrict' }),
+    clientId: uuid()
+      .notNull()
+      .references(() => clients.id, { onDelete: 'restrict' }),
+    sharePct: numeric({ precision: 5, scale: 2 }).notNull(),
+    gross: numeric({ precision: 14, scale: 2 }).notNull(),
+    fee: numeric({ precision: 14, scale: 2 }).notNull(),
+    payout: numeric({ precision: 14, scale: 2 }).notNull(),
+    feeOwed: numeric({ precision: 14, scale: 2 }).notNull().default('0'),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('settlement_lines_settlement_idx').on(t.settlementId),
+    index('settlement_lines_allocation_idx').on(t.allocationId, t.clientId),
+    check('settlement_lines_amounts', sql`${t.fee} >= 0 and ${t.payout} >= 0 and ${t.feeOwed} >= 0`),
+  ],
+).enableRLS();

@@ -177,6 +177,14 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
                             {p.sharePct && Number(p.sharePct) < 100 && (
                               <span className="text-muted-foreground"> ({formatPercent(p.sharePct)})</span>
                             )}
+                            {p.role === "owner" && (
+                              <Link
+                                href={`/liquidaciones/nueva?propietario=${p.clientNumber}&moneda=${contract.currency}`}
+                                className="text-muted-foreground hover:text-foreground ml-2 text-xs underline underline-offset-4"
+                              >
+                                Liquidar
+                              </Link>
+                            )}
                           </li>
                         ))}
                       </ul>

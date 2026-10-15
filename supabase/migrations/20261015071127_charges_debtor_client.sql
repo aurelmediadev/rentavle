@@ -1,0 +1,2 @@
+ALTER TABLE "charges" ADD COLUMN "debtor_client_id" uuid;--> statement-breakpoint
+ALTER TABLE "charges" ADD CONSTRAINT "charges_debtor_client_id_clients_id_fk" FOREIGN KEY ("debtor_client_id") REFERENCES "public"."clients"("id") ON DELETE restrict ON UPDATE no action;

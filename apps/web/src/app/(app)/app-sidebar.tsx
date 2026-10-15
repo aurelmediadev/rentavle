@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { ArrowLeftRight, Building2, Contact, FileText, LayoutDashboard, LineChart, TrendingUp, Users } from "lucide-react";
+import { ArrowLeftRight, Banknote, Building2, Contact, FileText, LayoutDashboard, LineChart, TrendingUp, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +29,7 @@ const sections = [
       { href: "/propiedades", label: "Propiedades", icon: Building2 },
       { href: "/clientes", label: "Clientes", icon: Contact },
       { href: "/movimientos", label: "Movimientos", icon: ArrowLeftRight },
+      { href: "/liquidaciones", label: "Liquidaciones", icon: Banknote },
       { href: "/indices", label: "Índices", icon: LineChart },
     ],
   },

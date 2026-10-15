@@ -4,3 +4,4 @@ export * from './contract-schedule';
 export * from './rent-update';
 export * from './charge-schedule';
 export * from './payments';
+export * from './settlement';

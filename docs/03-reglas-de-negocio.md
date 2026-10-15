@@ -139,6 +139,7 @@ Ejemplo (contrato de $500.000 con 10% de honorarios, pagado el día 14 con punit
 - **Copropietarios:** se divide según el porcentaje de titularidad de la propiedad.
 - Solo se liquida lo **efectivamente cobrado** (nunca deudas pendientes del inquilino), salvo que la inmobiliaria adelante fondos (registrado como préstamo, F3).
 - Cada liquidación genera un **documento** con columnas Pago / Honorarios / A liquidar, y sus asientos.
+- **Implementado:** se liquida por propietario y moneda, agrupando todos sus contratos; el cálculo es puro (`packages/domain/src/settlement.ts`, `settlement-plan.ts`). Cada cobro a favor del propietario se reparte por su porcentaje de titularidad y queda marcado como liquidado para ese propietario (la base impide liquidarlo dos veces). Las deudas del propietario (gastos a su cargo, honorarios pendientes) se descuentan hasta el monto a pagar. Si el inquilino le pagó directo al propietario, no hay pago: sus honorarios quedan como deuda de ese propietario (solo de él, no del copropietario) y se descuentan en una próxima liquidación. Una liquidación se anula con motivo y libera sus cobros; un cobro ya liquidado no se puede anular sin anular antes la liquidación. El PDF y los asientos llegan con los puntos 7 y 8.
 
 ## 8. Comunicaciones automáticas
 

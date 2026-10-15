@@ -15,6 +15,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { createdBy, id, timestamps } from './_shared';
+import { clients } from './clients';
 import { contracts, rentPeriods } from './contracts';
 import { organizations } from './organizations';
 
@@ -105,6 +106,11 @@ export const charges = pgTable(
      * saldo a favor from an overpayment). Reversing the movement voids it.
      */
     sourceMovementId: uuid(),
+    /**
+     * Specific owner who owes this debt, for co-owned properties (e.g. fees owed by
+     * one owner). Null = all owners of the contract.
+     */
+    debtorClientId: uuid().references(() => clients.id, { onDelete: 'restrict' }),
     /** Human-readable calculation, shown on screen and receipts. */
     calcExplanation: text(),
     notes: text(),

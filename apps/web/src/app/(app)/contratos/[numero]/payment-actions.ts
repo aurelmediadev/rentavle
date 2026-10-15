@@ -67,9 +67,12 @@ export async function reversePayment(movementId: string, _: FormState, formData:
     await reverseMovement(movementId, parsed.data.reason);
   } catch (error) {
     if (error instanceof PaymentError) return { message: error.message };
+    const dbMessage = (error as { cause?: { message?: string } }).cause?.message;
+    if (dbMessage) return { message: dbMessage };
     throw error;
   }
   revalidatePath("/contratos");
   revalidatePath("/movimientos");
-  return { ok: true, message: "Cobro anulado" };
+  revalidatePath("/liquidaciones");
+  return { ok: true, message: "Movimiento anulado" };
 }

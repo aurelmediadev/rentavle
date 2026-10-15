@@ -39,14 +39,15 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
   const { nuevo } = await searchParams;
   const data = await getMovementByNumber(number);
   if (!data) notFound();
-  const { movement, contractNumber, property, client, account, allocations, credits } = data;
+  const { movement, contractNumber, property, client, account, allocations, credits, lines, ownerFees } = data;
+  const isSettlement = movement.type === "owner_settlement";
   const fmt = (v: string) => formatMoney(v, movement.currency);
 
   return (
     <div className="grid max-w-3xl gap-6">
       {nuevo && !movement.reversedAt && (
         <p role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
-          Cobro registrado. Los recibos en PDF y el envío por email llegan en los próximos pasos.
+          {isSettlement ? "Liquidación registrada." : "Cobro registrado."} Los PDF y el envío por email llegan en los próximos pasos.
         </p>
       )}
       <PageHeader
@@ -58,16 +59,20 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
           </span>
         }
         description={formatDate(movement.date)}
-        actions={!movement.reversedAt && movement.type === "tenant_payment" ? <ReversePaymentDialog movementId={movement.id} /> : null}
+        actions={
+          !movement.reversedAt && (movement.type === "tenant_payment" || movement.type === "owner_settlement") ? (
+            <ReversePaymentDialog movementId={movement.id} kind={movement.type === "owner_settlement" ? "settlement" : "payment"} />
+          ) : null
+        }
       />
 
       <Card>
         <CardContent>
           <dl className="grid gap-4 sm:grid-cols-3">
-            <Item label="Monto recibido" value={<span className="text-lg font-semibold tabular-nums">{fmt(movement.amount)}</span>} />
+            <Item label={isSettlement ? "Monto pagado" : "Monto recibido"} value={<span className="text-lg font-semibold tabular-nums">{fmt(movement.amount)}</span>} />
             <Item label="Forma de pago" value={PAYMENT_METHOD[movement.method]} />
-            <Item label="Ingresó en" value={account ?? (movement.method === "transfer_to_owner" ? "Directo al propietario" : null)} />
-            <Item label="Pagó" value={client?.kind ? clientName(client as Parameters<typeof clientName>[0]) : null} />
+            <Item label={isSettlement ? "Salió de" : "Ingresó en"} value={account ?? (movement.method === "transfer_to_owner" ? "Directo al propietario" : null)} />
+            <Item label={isSettlement ? "Propietario" : "Pagó"} value={client?.kind ? clientName(client as Parameters<typeof clientName>[0]) : null} />
             <Item
               label="Contrato"
               value={
@@ -90,48 +95,112 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalle</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Concepto</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allocations.map((a, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    {a.type === "rent" ? `Alquiler ${formatMonth(a.periodMonth)}` : a.type === "late_interest" ? `Punitorios ${formatMonth(a.periodMonth)}` : a.title}
-                    {a.type === "late_interest" && a.explanation && (
-                      <span className="text-muted-foreground block text-xs">{a.explanation}</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">{fmt(a.amount)}</TableCell>
+      {isSettlement ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Liquidación</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Concepto</TableHead>
+                  <TableHead className="text-right">Pago</TableHead>
+                  <TableHead className="text-right">Honorarios</TableHead>
+                  <TableHead className="text-right">A liquidar</TableHead>
                 </TableRow>
-              ))}
-              {credits.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>
-                    Saldo a favor (queda para próximas deudas)
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">{fmt(c.amount.replace("-", ""))}</TableCell>
+              </TableHeader>
+              <TableBody>
+                {lines.map((l, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      {l.chargeType === "rent"
+                        ? `Alquiler ${formatMonth(l.periodMonth)}`
+                        : l.chargeType === "late_interest"
+                          ? `Punitorios ${formatMonth(l.periodMonth)}`
+                          : l.chargeTitle}
+                      <span className="text-muted-foreground block text-xs">
+                        Contrato #{l.contractNumber}
+                        {l.paymentNumber && ` · cobro #${l.paymentNumber}`}
+                        {l.sharePct !== "100.00" && ` · ${Number(l.sharePct)}% del propietario`}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{fmt(l.gross)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fmt(l.fee)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{fmt(l.payout)}</TableCell>
+                  </TableRow>
+                ))}
+                {allocations.map((a, i) => (
+                  <TableRow key={`d${i}`}>
+                    <TableCell>
+                      Descuento: {a.title} {formatMonth(a.periodMonth)}
+                    </TableCell>
+                    <TableCell />
+                    <TableCell />
+                    <TableCell className="text-right tabular-nums">-{fmt(a.amount)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell className="font-medium">Total pagado al propietario</TableCell>
+                  <TableCell />
+                  <TableCell />
+                  <TableCell className="text-right font-medium tabular-nums">{fmt(movement.amount)}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell className="font-medium">Total</TableCell>
-                <TableCell className="text-right font-medium tabular-nums">{fmt(movement.amount)}</TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableFooter>
+            </Table>
+            {ownerFees.map((fee) => (
+              <p key={fee.id} className="text-muted-foreground mt-3 text-sm">
+                Queda como deuda del propietario: {fee.title} {fmt(fee.amount)} (el inquilino le pagó directo).
+              </p>
+            ))}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Detalle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Concepto</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allocations.map((a, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      {a.type === "rent" ? `Alquiler ${formatMonth(a.periodMonth)}` : a.type === "late_interest" ? `Punitorios ${formatMonth(a.periodMonth)}` : a.title}
+                      {a.type === "late_interest" && a.explanation && (
+                        <span className="text-muted-foreground block text-xs">{a.explanation}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{fmt(a.amount)}</TableCell>
+                  </TableRow>
+                ))}
+                {credits.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      Saldo a favor (queda para próximas deudas)
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{fmt(c.amount.replace("-", ""))}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell className="font-medium">Total</TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">{fmt(movement.amount)}</TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
