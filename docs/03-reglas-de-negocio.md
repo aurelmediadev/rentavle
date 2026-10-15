@@ -195,6 +195,7 @@ Saldo de caja: 615.000 − 481.500 = **133.500** = honorarios (53.500) + expensa
 
 - Recibos, liquidaciones, movimientos y facturas llevan numeración correlativa por organización y por tipo, sin huecos (secuencia en la base con bloqueo por organización).
 - Un documento emitido no cambia; si se anula, queda marcado como anulado y se emite otro.
+- **Implementado:** cada cobro emite un recibo y cada liquidación un documento de liquidación, con numeración propia por tipo (`documents`, sin huecos). Al emitirlo se guarda una foto de todo lo que imprime (datos de la inmobiliaria, cliente, conceptos, importe en letras): el PDF se arma siempre desde esa foto, así que editar después un cliente, el logo o los datos fiscales no cambia los documentos ya emitidos (por eso las imágenes nunca se pisan: cada subida tiene nombre nuevo). Anular el movimiento anula el documento: el PDF sigue disponible con la marca ANULADO. Recibo en A4 con original y duplicado, o media hoja. Links para compartir de 30 días: token aleatorio guardado como hash, se leen sin sesión en `/d/<token>`. Datos, logo y firma en Configuración › Inmobiliaria (solo administradores).
 
 ## Pendientes de decidir
 

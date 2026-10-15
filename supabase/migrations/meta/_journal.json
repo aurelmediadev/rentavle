@@ -141,6 +141,27 @@
       "when": 1792049301783,
       "tag": "20261015072821_rls_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792051947229,
+      "tag": "20261015081227_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792051948723,
+      "tag": "20261015081228_rls_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792052199107,
+      "tag": "20261015081639_protect_organizations",
+      "breakpoints": true
     }
   ]
 }

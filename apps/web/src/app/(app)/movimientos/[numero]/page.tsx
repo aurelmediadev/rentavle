@@ -12,6 +12,7 @@ import { clientName, formatAddress } from "@/lib/format";
 import { formatMoney } from "@/lib/numbers";
 import { getMovementByNumber } from "../data";
 import { MOVEMENT_TYPE, PAYMENT_METHOD } from "../labels";
+import { DocumentCard } from "./document-card";
 import { ReversePaymentDialog } from "./reverse-dialog";
 
 export const metadata: Metadata = { title: "Movimiento · Rentavle" };
@@ -39,7 +40,7 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
   const { nuevo } = await searchParams;
   const data = await getMovementByNumber(number);
   if (!data) notFound();
-  const { movement, contractNumber, property, client, account, toAccount, allocations, credits, lines, ownerFees, entries } = data;
+  const { movement, contractNumber, property, client, account, toAccount, allocations, credits, lines, ownerFees, entries, document } = data;
   const isSettlement = movement.type === "owner_settlement";
   const isManual = movement.type === "manual_income" || movement.type === "manual_expense" || movement.type === "transfer";
   const fmt = (v: string) => formatMoney(v, movement.currency);
@@ -48,7 +49,7 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
     <div className="grid max-w-3xl gap-6">
       {nuevo && !movement.reversedAt && (
         <p role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
-          {isSettlement ? "Liquidación registrada." : "Cobro registrado."} Los PDF y el envío por email llegan en los próximos pasos.
+          {isSettlement ? "Liquidación registrada." : "Cobro registrado."} El envío por email llega en el próximo paso.
         </p>
       )}
       <PageHeader
@@ -111,6 +112,8 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
           )}
         </CardContent>
       </Card>
+
+      {document && <DocumentCard document={document} />}
 
       {isSettlement ? (
         <Card>

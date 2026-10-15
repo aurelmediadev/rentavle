@@ -1,0 +1,23 @@
+{
+  "name": "@rentavle/pdf",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "4.9.0",
+    "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "typescript": "^5.9.3",
+    "vitest": "5.0.4"
+  }
+}

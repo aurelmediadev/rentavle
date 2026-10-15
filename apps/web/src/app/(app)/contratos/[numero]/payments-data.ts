@@ -4,6 +4,7 @@ import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { schema, type Transaction } from "@rentavle/db";
 import { ownerDirectAmount } from "@rentavle/domain";
 import { asUser, getActiveMembership } from "@/lib/auth";
+import { issueReceipt } from "@/lib/documents";
 import { type PlanCharge, buildPaymentPlan } from "./payment-plan";
 
 const { charges, chargeAllocations, movements, contracts, cashAccounts, contractParties } = schema;
@@ -221,6 +222,7 @@ export async function recordTenantPayment(input: RecordPaymentInput) {
         createdBy: user.id,
       });
     }
+    await issueReceipt(tx, movement!.id, user.id);
     return movement!;
   });
 }

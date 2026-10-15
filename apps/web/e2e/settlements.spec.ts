@@ -100,6 +100,7 @@ test("owner settlements: co-owners, fees, direct payments, owner debts and rever
   await visible(page.getByRole("button", { name: "Registrar liquidación" })).click();
   await expect(page).toHaveURL(/\/movimientos\/\d+/);
   await expect(visible(page.getByText("Liquidación registrada."))).toBeVisible();
+  await expect(visible(page.getByText("Liquidación N° 00000001"))).toBeVisible();
   await expect(visible(page.getByRole("row", { name: /Total pagado al propietario/ }))).toContainText("$ 250.000");
   await expect(visible(page.getByText(/Queda como deuda del propietario: Honorarios de administración \$\s30\.000/))).toBeVisible();
   const lauraSettlementUrl = page.url();

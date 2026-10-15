@@ -46,6 +46,8 @@ export interface CountryPack {
   /** Index series code preselected for new contracts (index_series.code). */
   readonly defaultIndexSeries: string;
   readonly indexSources: readonly IndexSource[];
+  /** Amount in words for receipts, with the currency: "pesos quinientos mil con 00/100". */
+  amountInWords(amount: string, currency: string): string;
   /** First-level subdivisions (provinces, states, regions). */
   readonly regions: readonly Option[];
 }

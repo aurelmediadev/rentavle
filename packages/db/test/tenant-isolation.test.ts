@@ -43,6 +43,18 @@ describe('tenant isolation', () => {
     expect(seenByCarol).toEqual([]);
   });
 
+  it('lets admins edit their agency data but not its subscription, country or currency', async () => {
+    await db.withUser(alice.claims, (tx) => tx.update(organizations).set({ address: 'Calle Falsa 123' }).where(eq(organizations.id, orgA)));
+    for (const change of [{ subscriptionStatus: 'active' as const }, { trialEndsAt: new Date('2099-01-01') }, { countryCode: 'CL' }, { defaultCurrency: 'USD' }]) {
+      await expectDbError(
+        db.withUser(alice.claims, (tx) => tx.update(organizations).set(change).where(eq(organizations.id, orgA))),
+        /No se puede cambiar el país, la moneda ni la suscripción/,
+      );
+    }
+    const [org] = await db.admin.select().from(organizations).where(eq(organizations.id, orgA));
+    expect(org).toMatchObject({ address: 'Calle Falsa 123', subscriptionStatus: 'trialing', countryCode: 'AR' });
+  });
+
   it('does not let a user update another organization', async () => {
     const updated = await db.withUser(alice.claims, (tx) =>
       tx.update(organizations).set({ name: 'Hackeada' }).where(eq(organizations.id, orgB)).returning(),

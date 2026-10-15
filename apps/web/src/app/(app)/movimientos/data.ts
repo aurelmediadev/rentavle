@@ -3,7 +3,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { schema } from "@rentavle/db";
 import { asUser, getActiveMembership } from "@/lib/auth";
 
-const { movements, contracts, properties, clients, cashAccounts, chargeAllocations, charges, profiles, settlementLines, ledgerEntries, ledgerAccounts } = schema;
+const { movements, contracts, properties, clients, cashAccounts, chargeAllocations, charges, profiles, settlementLines, ledgerEntries, ledgerAccounts, documents } = schema;
 
 const ACCOUNT_LABEL: Record<string, string> = {
   tenant: "Inquilino",
@@ -130,8 +130,14 @@ export async function getMovementByNumber(number: number) {
       };
     });
 
+    const [document] = await tx
+      .select({ id: documents.id, type: documents.type, number: documents.number, status: documents.status })
+      .from(documents)
+      .where(eq(documents.movementId, row.movement.id));
+
     return {
       ...row,
+      document: document ?? null,
       toAccount: boxNames.find((b) => b.id === row.movement.toCashAccountId)?.name ?? null,
       entries,
       allocations,

@@ -7,3 +7,4 @@ export * from './contracts';
 export * from './charges';
 export * from './movements';
 export * from './ledger';
+export * from './documents';

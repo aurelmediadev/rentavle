@@ -4,6 +4,7 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { schema, type Transaction } from "@rentavle/db";
 import type { ReceivedBy } from "@rentavle/domain";
 import { asUser, getActiveMembership } from "@/lib/auth";
+import { issueSettlement } from "@/lib/documents";
 import { formatAddress } from "@/lib/format";
 import { type OwnerDebt, type PendingItem, buildSettlementPlan } from "./settlement-plan";
 
@@ -272,6 +273,7 @@ export async function recordSettlement(input: RecordSettlementInput) {
         createdBy: user.id,
       });
     }
+    await issueSettlement(tx, settlement!.id, user.id);
     return settlement!;
   });
 }

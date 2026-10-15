@@ -44,6 +44,10 @@ export const organizations = pgTable(
     name: text().notNull(),
     legalName: text(),
     taxId: text(),
+    /** Country pack tax condition code (e.g. RESPONSABLE_INSCRIPTO). */
+    taxCondition: text(),
+    /** Printed on documents, one line. */
+    address: text(),
     countryCode: char({ length: 2 }).notNull(),
     defaultCurrency: char({ length: 3 }).notNull(),
     timezone: text().notNull(),

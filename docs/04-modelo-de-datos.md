@@ -123,9 +123,9 @@ Tablas globales (sin `organization_id`), de solo lectura para usuarios, escritas
 Restricción: por cada `posting_id` (un registro o una reversa), débitos = créditos; se valida al confirmar la transacción.
 
 **documents**
-`id, organization_id, number, type (receipt | settlement | debt_notice | invoice), movement_id, client_id, pdf_path, status (issued | void), issued_at`
+`id, organization_id, type (receipt | settlement), number (correlativo por tipo), movement_id (único), data jsonb (foto de lo que imprime), status (issued | void), issued_at, voided_at, created_by` — el PDF se genera a pedido desde `data`; `debt_notice` e `invoice` se suman en F2/F3
 
-**document_links** — `id, document_id, token_hash, expires_at` (links públicos para compartir)
+**document_links** — `id, organization_id, document_id, token_hash, expires_at, created_by` (links públicos para compartir; se leen con `public.shared_document(hash)`)
 
 ## Comunicaciones
 

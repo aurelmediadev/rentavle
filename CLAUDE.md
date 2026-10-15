@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto, la edición de condiciones y las alertas de vencimiento. Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones) y 7 (caja y contabilidad) listos. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto, la edición de condiciones y las alertas de vencimiento. Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad) y 8 (documentos PDF) listos. Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 
@@ -29,11 +29,12 @@ Esta versión tiene cambios grandes: leer `apps/web/node_modules/next/dist/docs/
 - Después de `supabase db reset`: correr `fetch-indexes` (los e2e de actualizaciones usan el IPC real) y `seed-demo`.
 - Fuentes externas inestables: la API de datos.gob.ar tiene réplicas desactualizadas; el IPC se consulta varias veces y se unen los resultados (`packages/country/src/ar/indexes.ts`).
 - Los asientos contables los escribe solo la base (triggers diferidos en `rls_ledger`): el código nunca inserta en `ledger_entries`. Los tests que borran datos a mano llaman antes a `purgeLedger(orgId)`.
+- Los usuarios no pueden cambiar país, moneda ni suscripción de la organización (trigger `protect_organizations`): eso solo lo hace código de confianza.
 - Cada tabla nueva de negocio: `organization_id`, RLS con `private.is_member()` / `private.has_role()`, y casos en `packages/db/test/tenant-isolation.test.ts`.
 
 ## Stack
 
-Next.js (App Router) + TypeScript estricto, Tailwind + shadcn/ui, Supabase (Postgres, Auth, Storage), Drizzle ORM, Trigger.dev, Resend, `@react-pdf/renderer`, MercadoPago, `decimal.js`, `next-intl`, Vitest, Playwright. Monorepo pnpm (`apps/web`, `packages/*`). Detalle en [`docs/05-arquitectura.md`](docs/05-arquitectura.md).
+Next.js (App Router) + TypeScript estricto, Tailwind + shadcn/ui, Supabase (Postgres, Auth, Storage), Drizzle ORM, Trigger.dev, Resend, `@react-pdf/renderer`, MercadoPago, `decimal.js`, `next-intl`, Vitest, Playwright. Monorepo pnpm (`apps/web`, `packages/*`; plantillas PDF en `packages/pdf`). Detalle en [`docs/05-arquitectura.md`](docs/05-arquitectura.md).
 
 ## Reglas
 

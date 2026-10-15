@@ -1,5 +1,8 @@
 import type { CountryPack } from '../types';
+import { amountInWords } from '../es/words';
 import { formatCuit, normalizeCuit } from './cuit';
+
+const CURRENCY_NAMES: Record<string, string> = { ARS: 'pesos', USD: 'dólares estadounidenses', EUR: 'euros' };
 import { argentinaIndexSources } from './indexes';
 
 export const argentina: CountryPack = {
@@ -12,6 +15,7 @@ export const argentina: CountryPack = {
   phonePrefix: '+54',
   defaultIndexSeries: 'AR_IPC',
   indexSources: argentinaIndexSources,
+  amountInWords: (amount, currency) => `${CURRENCY_NAMES[currency] ?? currency} ${amountInWords(amount)}`,
   taxId: {
     label: 'CUIT',
     placeholder: '30-12345678-9',

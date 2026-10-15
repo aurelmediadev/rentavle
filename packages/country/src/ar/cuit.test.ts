@@ -24,3 +24,11 @@ describe('CUIT', () => {
     expect(formatCuit('20123456786')).toBe('20-12345678-6');
   });
 });
+
+describe('Argentine amounts in words', () => {
+  it('names the currency', async () => {
+    const { argentina } = await import('./index');
+    expect(argentina.amountInWords('481500', 'ARS')).toBe('pesos cuatrocientos ochenta y un mil quinientos con 00/100');
+    expect(argentina.amountInWords('1200.5', 'USD')).toBe('dólares estadounidenses mil doscientos con 50/100');
+  });
+});

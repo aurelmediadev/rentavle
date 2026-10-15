@@ -23,6 +23,8 @@ export interface DbClients {
   admin: Database;
   /** Runs `fn` in a transaction as the given user, so every RLS policy applies. */
   withUser<T>(claims: JwtClaims, fn: (tx: Transaction) => Promise<T>): Promise<T>;
+  /** Runs `fn` as an anonymous visitor (public pages): only what anon is granted. */
+  asAnon<T>(fn: (tx: Transaction) => Promise<T>): Promise<T>;
   close(): Promise<void>;
 }
 
@@ -44,6 +46,12 @@ export function createDbClients(databaseUrl: string): DbClients {
             set_config('request.jwt.claim.sub', ${claims.sub}, true),
             set_config('role', ${role}, true)
         `);
+        return fn(tx);
+      });
+    },
+    asAnon(fn) {
+      return admin.transaction(async (tx) => {
+        await tx.execute(sql`select set_config('role', 'anon', true)`);
         return fn(tx);
       });
     },
