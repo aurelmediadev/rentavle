@@ -72,6 +72,14 @@ Cada deuda define **a quién le debe** (crédito para: propietario, administraci
 
 Los gastos pueden ser **por adelantado** (se cobran en el mes del servicio) o **vencidos** (se cobran el mes siguiente).
 
+**Implementado** (`packages/domain/src/charge-schedule.ts` y `packages/jobs/src/generate-charges.ts`):
+
+- La generación se pone al día desde el primer mes registrado hasta el mes actual (o el siguiente, a pedido) y es idempotente: un índice único garantiza una deuda de alquiler por contrato y mes, y una por gasto recurrente y mes.
+- Si el aumento del período espera el índice, el alquiler se genera con el último monto conocido, marcado **a confirmar**; se corrige solo al calcularse el aumento, si sigue impago.
+- Las deudas **no se borran**: se anulan con motivo. Un mes anulado **no se vuelve a generar**. Una deuda anulada solo puede restaurarse (mismo monto y partes). Con pagos, ni el monto ni las partes pueden cambiar y no se puede anular (trigger en la base).
+- La rescisión anticipada anula las deudas impagas posteriores al nuevo fin; anular la rescisión las restaura.
+- Los descuentos son importes negativos.
+
 ## 4. Punitorios (intereses por mora)
 
 Configurables por contrato, con valores por defecto de la organización:

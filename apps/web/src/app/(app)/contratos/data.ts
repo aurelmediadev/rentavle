@@ -220,6 +220,9 @@ async function syncPropertyStatus(tx: Transaction, propertyId: string, today: st
 
 export class ContractConflictError extends Error {}
 
+/** Marks debts voided by an early termination, so undoing it can restore them. */
+const TERMINATION_VOID_REASON = "Rescisión anticipada del contrato";
+
 export async function insertContract(input: ContractInput) {
   const { organizationId, timezone } = await getActiveMembership();
   const seriesId =
@@ -389,6 +392,19 @@ export async function changeEndDate(contractId: string, kind: EndDateChange, new
       throw error;
     }
     await replanPeriods(tx, contract, newEndDate);
+    if (kind === "terminate") {
+      // Debts after the new end that nobody paid are no longer owed.
+      await tx
+        .update(schema.charges)
+        .set({ status: "void", voidedAt: new Date(), voidReason: TERMINATION_VOID_REASON })
+        .where(
+          and(
+            eq(schema.charges.contractId, contract.id),
+            eq(schema.charges.status, "pending"),
+            sql`${schema.charges.periodMonth} > date_trunc('month', ${newEndDate}::date)`,
+          ),
+        );
+    }
     await logEvent(tx, contract, user.id, kind === "extend" ? "extended" : "early_termination", {
       reason,
       payload: { previousEndDate: contract.endDate, newEndDate },
@@ -407,6 +423,16 @@ export async function cancelTermination(contractId: string) {
     }
     await tx.update(contracts).set({ endDate: contract.originalEndDate }).where(eq(contracts.id, contract.id));
     await replanPeriods(tx, contract, contract.originalEndDate);
+    await tx
+      .update(schema.charges)
+      .set({ status: "pending", voidedAt: null, voidReason: null })
+      .where(
+        and(
+          eq(schema.charges.contractId, contract.id),
+          eq(schema.charges.status, "void"),
+          eq(schema.charges.voidReason, TERMINATION_VOID_REASON),
+        ),
+      );
     await logEvent(tx, contract, user.id, "termination_cancelled", {
       payload: { previousEndDate: contract.endDate, newEndDate: contract.originalEndDate },
     });

@@ -5,7 +5,7 @@ import Decimal from "decimal.js";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { schema } from "@rentavle/db";
-import { applyRentUpdates } from "@rentavle/jobs";
+import { applyRentUpdates, generateCharges } from "@rentavle/jobs";
 import { asUser, getActiveMembership, requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { type FormState, formValues } from "@/lib/forms";
@@ -18,6 +18,8 @@ import { parseLocaleDecimal } from "@/lib/numbers";
 export async function recalculateUpdates(): Promise<{ calculated: number; waiting: number }> {
   const { organizationId } = await getActiveMembership();
   const result = await applyRentUpdates(db.admin, { now: new Date(), organizationId });
+  // Confirms rent debts that were waiting for these amounts.
+  await generateCharges(db.admin, { now: new Date(), organizationId });
   revalidatePath("/contratos");
   return { calculated: result.calculated + result.provisional, waiting: result.waitingForIndex };
 }

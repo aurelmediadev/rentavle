@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { generateCharges } from "@rentavle/jobs";
+import { db } from "@/lib/db";
 import { type FormState, formValues } from "@/lib/forms";
 import { parseContractForm } from "./contract-input";
 import {
@@ -18,9 +20,11 @@ export async function createContract(_: FormState, formData: FormData): Promise<
   const parsed = parseContractForm(formData);
   if (!parsed.ok) return parsed.state;
 
-  let created: { number: number };
+  let created: { id: string; number: number };
   try {
     created = await insertContract(parsed.data);
+    // Debts of the months already due appear right away (the job is scoped to this contract).
+    await generateCharges(db.admin, { now: new Date(), contractId: created.id });
   } catch (error) {
     if (error instanceof ContractConflictError) {
       return { fieldErrors: { startDate: [error.message] }, values: formValues(formData) };
@@ -50,6 +54,7 @@ export async function changeContractEndDate(
   if (!parsed.success) return { fieldErrors: { endDate: ["Elegí una fecha"] }, values: formValues(formData) };
   try {
     await changeEndDate(contractId, kind, parsed.data.endDate, parsed.data.reason);
+    await generateCharges(db.admin, { now: new Date(), contractId });
   } catch (error) {
     if (error instanceof ContractConflictError) return { fieldErrors: { endDate: [error.message] }, values: formValues(formData) };
     throw error;
@@ -62,6 +67,7 @@ export async function changeContractEndDate(
 export async function cancelContractTermination(contractId: string): Promise<{ error?: string }> {
   try {
     await cancelTermination(contractId);
+    await generateCharges(db.admin, { now: new Date(), contractId });
   } catch (error) {
     if (error instanceof ContractConflictError) return { error: error.message };
     throw error;
@@ -73,6 +79,7 @@ export async function cancelContractTermination(contractId: string): Promise<{ e
 export async function finishContract(contractId: string, finished: boolean): Promise<{ error?: string }> {
   try {
     await setFinished(contractId, finished, null);
+    if (!finished) await generateCharges(db.admin, { now: new Date(), contractId });
   } catch (error) {
     if (error instanceof ContractConflictError) return { error: error.message };
     throw error;

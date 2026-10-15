@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getActiveMembership } from "@/lib/auth";
-import { formatDate, formatMonth, todayIn } from "@/lib/dates";
+import { currentMonthIn, formatDate, formatMonth, todayIn } from "@/lib/dates";
+import { formatYearMonth } from "@rentavle/domain";
 import { clientName, formatAddress } from "@/lib/format";
 import { formatMoney, formatPercent } from "@/lib/numbers";
 import { getContractByNumber } from "../data";
@@ -23,6 +24,8 @@ import {
 } from "../labels";
 import { contractStatus } from "../status";
 import { ContractActions } from "./contract-actions";
+import { getContractCharges } from "./charges-data";
+import { ChargesSection } from "./charges-section";
 import { AdjustPeriodDialog } from "../actualizaciones/update-controls";
 
 export const metadata: Metadata = { title: "Contrato · Rentavle" };
@@ -68,6 +71,7 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
   const tenants = parties.filter((p) => p.role === "tenant");
   const guarantors = parties.filter((p) => p.role === "guarantor");
   const current = [...periods].reverse().find((p) => p.amount !== null);
+  const { charges, templates } = await getContractCharges(contract.id);
 
   const updateText =
     contract.updateMode === "none"
@@ -201,6 +205,16 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
           {contract.notes && <p className="bg-muted/50 mt-4 rounded-md p-3 text-sm whitespace-pre-wrap">{contract.notes}</p>}
         </CardContent>
       </Card>
+
+      <ChargesSection
+        contractId={contract.id}
+        active={contract.status === "active"}
+        currency={contract.currency}
+        installments={installmentCount(term)}
+        currentMonth={formatYearMonth(currentMonthIn(timezone))}
+        charges={charges}
+        templates={templates}
+      />
 
       <Card>
         <CardHeader>

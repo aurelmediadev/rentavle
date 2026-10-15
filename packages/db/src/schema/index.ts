@@ -4,3 +4,4 @@ export * from './clients';
 export * from './properties';
 export * from './indexes';
 export * from './contracts';
+export * from './charges';

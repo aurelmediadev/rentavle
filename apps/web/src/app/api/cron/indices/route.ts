@@ -1,9 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
-import { applyRentUpdates, fetchIndexes } from "@rentavle/jobs";
+import { applyRentUpdates, fetchIndexes, generateCharges } from "@rentavle/jobs";
 import { db } from "@/lib/db";
 
 /**
- * Daily job: download official index values, then calculate due rent updates.
+ * Daily job: download official index values, calculate due rent updates and
+ * create the month's debts.
  * Called by the scheduler (Vercel Cron) with `Authorization: Bearer $CRON_SECRET`.
  * Both steps are idempotent, so retries are safe.
  */
@@ -18,6 +19,8 @@ export async function GET(request: Request) {
   // Jobs act for no user, so they use the admin client (see CLAUDE.md, "Base de datos").
   const indexes = await fetchIndexes(db.admin, now.toISOString().slice(0, 10));
   const updates = await applyRentUpdates(db.admin, { now });
+  // After updates, so this month's rent debts use the new amounts.
+  const charges = await generateCharges(db.admin, { now });
   const failed = indexes.filter((r) => r.error);
-  return Response.json({ indexes, updates }, { status: failed.length ? 207 : 200 });
+  return Response.json({ indexes, updates, charges }, { status: failed.length ? 207 : 200 });
 }

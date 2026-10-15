@@ -10,7 +10,9 @@
     "fetch-indexes": "tsx src/cli.ts fetch-indexes",
     "apply-rent-updates": "tsx src/cli.ts apply-rent-updates",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate-charges": "tsx src/cli.ts generate-charges",
+    "seed-demo": "tsx src/seed-demo.ts"
   },
   "dependencies": {
     "@rentavle/country": "workspace:*",
