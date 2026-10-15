@@ -52,6 +52,8 @@ export async function pendingItems(tx: Transaction, organizationId: string, owne
         eq(movements.type, "tenant_payment"),
         isNull(movements.reversedAt),
         eq(charges.creditor, "owner"),
+        // A saldo a favor used in a payment is the tenant's own money, not the owner's.
+        sql`${charges.type} <> 'credit_balance'`,
         ownerId ? eq(contractParties.clientId, ownerId) : undefined,
         // Not settled yet to this owner by a settlement that is still valid.
         sql`not exists (

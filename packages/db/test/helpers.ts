@@ -63,6 +63,14 @@ export function createTestDb() {
     return db.withUser(user.claims, (tx) => tx.execute(sql`select public.accept_invitation(${token})`));
   }
 
+  /** Deletes an organization's ledger entries so the test can delete its movements and debts. */
+  async function purgeLedger(orgId: string) {
+    await db.admin.transaction(async (tx) => {
+      await tx.execute(sql`select set_config('rentavle.purge_organization', ${orgId}, true)`);
+      await tx.execute(sql`delete from public.ledger_entries where organization_id = ${orgId}`);
+    });
+  }
+
   async function cleanup() {
     if (orgs.length) await db.admin.delete(organizations).where(inArray(organizations.id, orgs));
     for (const id of users) {
@@ -71,7 +79,7 @@ export function createTestDb() {
     await db.close();
   }
 
-  return { db, createUser, createOrganization, invite, acceptInvitation, cleanup };
+  return { db, createUser, createOrganization, invite, acceptInvitation, purgeLedger, cleanup };
 }
 
 export interface TestUser {

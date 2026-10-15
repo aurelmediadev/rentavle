@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { charges, contracts, properties, recurringCharges } from '../src/schema';
 import { createTestDb, expectDbError, type TestUser } from './helpers';
 
-const { db, createUser, createOrganization, cleanup } = createTestDb();
+const { db, createUser, createOrganization, purgeLedger, cleanup } = createTestDb();
 
 let alice: TestUser;
 let bob: TestUser;
@@ -48,6 +48,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await purgeLedger(orgA);
   await db.admin.delete(contracts).where(eq(contracts.organizationId, orgA));
   await cleanup();
 });

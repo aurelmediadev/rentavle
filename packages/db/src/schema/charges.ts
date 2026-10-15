@@ -30,6 +30,8 @@ export const chargeType = pgEnum('charge_type', [
   'fee',
   'adjustment',
   'bank_commission',
+  /** Saldo a favor: money the tenant already paid in excess (no ledger entry of its own). */
+  'credit_balance',
 ]);
 export const chargeStatus = pgEnum('charge_status', ['pending', 'partially_paid', 'paid', 'void']);
 export const chargeTiming = pgEnum('charge_timing', ['in_advance', 'in_arrears']);

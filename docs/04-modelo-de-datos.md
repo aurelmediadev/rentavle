@@ -116,11 +116,11 @@ Tablas globales (sin `organization_id`), de solo lectura para usuarios, escritas
 
 **cash_accounts** (cajas y cuentas de la administración) — `id, organization_id, type (cash | bank), name, bank_account_id, currency, is_default`
 
-**ledger_accounts** — `id, organization_id, type (cash | tenant | owner | fees | admin_charges | third_party), ref_id, currency`
+**ledger_accounts** — `id, organization_id, type (cash | tenant | owner | fees | admin_charges | third_party | other_income | expenses), ref_id, currency` (`ref_id`: la caja, o el contrato para inquilino, propietarios y terceros)
 
 **ledger_entries**
-`id, organization_id, movement_id, charge_id, account_id, direction (debit | credit), amount, currency, concept, reversal_of_id, created_at`
-Restricción: por cada `movement_id`/`charge_id`, débitos = créditos (se valida en una transacción con una función de Postgres).
+`id, organization_id, posting_id, movement_id, charge_id, account_id, direction (debit | credit), amount, currency, date, concept, reversal_of_id, created_at`
+Restricción: por cada `posting_id` (un registro o una reversa), débitos = créditos; se valida al confirmar la transacción.
 
 **documents**
 `id, organization_id, number, type (receipt | settlement | debt_notice | invoice), movement_id, client_id, pdf_path, status (issued | void), issued_at`

@@ -77,6 +77,10 @@ export const movements = pgTable(
     method: paymentMethod().notNull(),
     /** Box/account the money entered or left; null when it never passed through the agency. */
     cashAccountId: uuid().references(() => cashAccounts.id, { onDelete: 'restrict' }),
+    /** Transfers between boxes: the box/account that receives the money. */
+    toCashAccountId: uuid().references(() => cashAccounts.id, { onDelete: 'restrict' }),
+    /** Split transfers: part the tenant paid straight to the owners (the rest entered cashAccountId). */
+    ownerDirectAmount: numeric({ precision: 14, scale: 2 }),
     /** Money actually received or paid (can exceed the debts: the rest is saldo a favor). */
     amount: numeric({ precision: 14, scale: 2 }).notNull(),
     currency: char({ length: 3 }).notNull(),

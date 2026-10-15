@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type SettleableItem, settlementLines, settlementTotals, splitByShares } from './settlement';
+import { type SettleableItem, ownerDirectAmount, settlementLines, settlementTotals, splitByShares } from './settlement';
 
 const pct10 = { type: 'pct' as const, value: '10' };
 const item = (over: Partial<SettleableItem>): SettleableItem => ({
@@ -66,5 +66,16 @@ describe('settlement lines', () => {
   it('validates shares', () => {
     expect(() => settlementLines([item({})], [{ clientId: 'x', sharePct: '90' }], 'ARS')).toThrow(RangeError);
     expect(splitByShares('1', [{ clientId: 'a', sharePct: '50' }, { clientId: 'b', sharePct: '50' }], 'CLP')).toEqual(['1', '0']);
+  });
+});
+
+describe('owner direct amount (split transfer)', () => {
+  it('is what the owners got: paid minus the agency fee, matching the settlement lines', () => {
+    const owners = [{ clientId: 'laura', sharePct: '60' }, { clientId: 'jorge', sharePct: '40' }];
+    const items = [item({ paid: '500000.05' }), item({ allocationId: 'a2', chargeType: 'late_interest', appliesFee: false, paid: '1000' })];
+    // 500.000,05 → 300.000,03 / 200.000,02; fees 30.000,00 / 20.000,00; interest without fee.
+    expect(ownerDirectAmount(items, owners, 'ARS')).toBe('451000.05');
+    const lines = settlementLines(items.map((i) => ({ ...i, receivedBy: 'split' as const })), owners, 'ARS');
+    expect(settlementTotals(lines, 'ARS').fee).toBe('50000.00');
   });
 });

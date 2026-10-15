@@ -4,7 +4,7 @@
  */
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { invitations, memberships, organizations, profiles } from '../src/schema';
+import { cashAccounts, invitations, ledgerAccounts, ledgerEntries, memberships, movements, organizations, profiles } from '../src/schema';
 import { createTestDb, expectDbError, type TestUser } from './helpers';
 
 const { db, createUser, createOrganization, invite, acceptInvitation, cleanup } = createTestDb();
@@ -73,6 +73,20 @@ describe('tenant isolation', () => {
 
   it('does not let an admin create invitations for another organization', async () => {
     await expectDbError(invite(alice, orgB, 'intruder@example.com', 'admin'), /row-level security/);
+  });
+
+  it('keeps the books of each organization private', async () => {
+    const [box] = await db.admin.select().from(cashAccounts).where(eq(cashAccounts.organizationId, orgA));
+    await db.withUser(alice.claims, (tx) =>
+      tx.insert(movements).values({ organizationId: orgA, type: 'manual_income', date: '2026-10-15', method: 'cash', cashAccountId: box!.id, amount: '1000', currency: 'ARS', createdBy: alice.id }),
+    );
+    const seenByAlice = await db.withUser(alice.claims, (tx) => tx.select().from(ledgerEntries));
+    expect(seenByAlice).toHaveLength(2);
+    const seenByBob = await db.withUser(bob.claims, async (tx) => ({
+      entries: await tx.select().from(ledgerEntries),
+      accounts: await tx.select().from(ledgerAccounts),
+    }));
+    expect(seenByBob).toEqual({ entries: [], accounts: [] });
   });
 
   it('denies anonymous requests', async () => {

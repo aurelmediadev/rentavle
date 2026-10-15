@@ -39,8 +39,9 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
   const { nuevo } = await searchParams;
   const data = await getMovementByNumber(number);
   if (!data) notFound();
-  const { movement, contractNumber, property, client, account, allocations, credits, lines, ownerFees } = data;
+  const { movement, contractNumber, property, client, account, toAccount, allocations, credits, lines, ownerFees, entries } = data;
   const isSettlement = movement.type === "owner_settlement";
+  const isManual = movement.type === "manual_income" || movement.type === "manual_expense" || movement.type === "transfer";
   const fmt = (v: string) => formatMoney(v, movement.currency);
 
   return (
@@ -60,8 +61,8 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
         }
         description={formatDate(movement.date)}
         actions={
-          !movement.reversedAt && (movement.type === "tenant_payment" || movement.type === "owner_settlement") ? (
-            <ReversePaymentDialog movementId={movement.id} kind={movement.type === "owner_settlement" ? "settlement" : "payment"} />
+          !movement.reversedAt ? (
+            <ReversePaymentDialog movementId={movement.id} kind={isSettlement ? "settlement" : isManual ? "movement" : "payment"} />
           ) : null
         }
       />
@@ -69,11 +70,27 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
       <Card>
         <CardContent>
           <dl className="grid gap-4 sm:grid-cols-3">
-            <Item label={isSettlement ? "Monto pagado" : "Monto recibido"} value={<span className="text-lg font-semibold tabular-nums">{fmt(movement.amount)}</span>} />
-            <Item label="Forma de pago" value={PAYMENT_METHOD[movement.method]} />
-            <Item label={isSettlement ? "Salió de" : "Ingresó en"} value={account ?? (movement.method === "transfer_to_owner" ? "Directo al propietario" : null)} />
-            <Item label={isSettlement ? "Propietario" : "Pagó"} value={client?.kind ? clientName(client as Parameters<typeof clientName>[0]) : null} />
             <Item
+              label={isSettlement ? "Monto pagado" : isManual ? "Monto" : "Monto recibido"}
+              value={<span className="text-lg font-semibold tabular-nums">{fmt(movement.amount)}</span>}
+            />
+            {!isManual && <Item label="Forma de pago" value={PAYMENT_METHOD[movement.method]} />}
+            {movement.type === "transfer" ? (
+              <>
+                <Item label="Desde" value={account} />
+                <Item label="Hacia" value={toAccount} />
+              </>
+            ) : (
+              <Item
+                label={isSettlement || movement.type === "manual_expense" ? "Salió de" : "Ingresó en"}
+                value={account ?? (movement.method === "transfer_to_owner" ? "Directo al propietario" : null)}
+              />
+            )}
+            {movement.ownerDirectAmount && (
+              <Item label="Pagado directo a los propietarios" value={<span className="tabular-nums">{fmt(movement.ownerDirectAmount)}</span>} />
+            )}
+            {!isManual && <Item label={isSettlement ? "Propietario" : "Pagó"} value={client?.kind ? clientName(client as Parameters<typeof clientName>[0]) : null} />}
+            {!isManual && <Item
               label="Contrato"
               value={
                 contractNumber ? (
@@ -82,7 +99,7 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
                   </Link>
                 ) : null
               }
-            />
+            />}
             <Item
               label="Registrado por"
               value={[data.createdByFirst, data.createdByLast].filter(Boolean).join(" ")}
@@ -157,7 +174,7 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
             ))}
           </CardContent>
         </Card>
-      ) : (
+      ) : isManual ? null : (
         <Card>
           <CardHeader>
             <CardTitle>Detalle</CardTitle>
@@ -201,6 +218,39 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Asientos contables</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {entries.length === 0 ? (
+            <p className="text-muted-foreground text-sm">Este movimiento no movió dinero ni saldos.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cuenta</TableHead>
+                  <TableHead className="text-right">Debe</TableHead>
+                  <TableHead className="text-right">Haber</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {entries.map((e) => (
+                  <TableRow key={e.id} className={e.isReversal ? "text-muted-foreground" : undefined}>
+                    <TableCell>
+                      {e.account}
+                      {e.isReversal && <span className="block text-xs">Reversa del {formatDate(e.date)}</span>}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{e.direction === "debit" ? fmt(e.amount) : ""}</TableCell>
+                    <TableCell className="text-right tabular-nums">{e.direction === "credit" ? fmt(e.amount) : ""}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

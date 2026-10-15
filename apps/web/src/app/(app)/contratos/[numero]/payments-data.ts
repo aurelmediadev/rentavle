@@ -2,6 +2,7 @@ import "server-only";
 import Decimal from "decimal.js";
 import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { schema, type Transaction } from "@rentavle/db";
+import { ownerDirectAmount } from "@rentavle/domain";
 import { asUser, getActiveMembership } from "@/lib/auth";
 import { type PlanCharge, buildPaymentPlan } from "./payment-plan";
 
@@ -114,6 +115,40 @@ export async function recordTenantPayment(input: RecordPaymentInput) {
       .where(and(eq(contractParties.contractId, contract.id), eq(contractParties.role, "tenant")))
       .limit(1);
 
+    // Split transfer: the owners got everything in their favour minus the agency fee.
+    let ownerDirect: string | null = null;
+    if (input.method === "split_transfer") {
+      const [owners, chargeRows] = await Promise.all([
+        tx
+          .select({ clientId: contractParties.clientId, sharePct: contractParties.sharePct })
+          .from(contractParties)
+          .where(and(eq(contractParties.contractId, contract.id), eq(contractParties.role, "owner"))),
+        tx
+          .select({ id: charges.id, type: charges.type, creditor: charges.creditor, appliesFee: charges.appliesFee, amount: charges.amount })
+          .from(charges)
+          .where(inArray(charges.id, input.chargeIds)),
+      ]);
+      const interestByKey = new Map(plan.interests.map((i) => [i.key, i]));
+      const items = plan.allocation.allocations.flatMap((a) => {
+        const interest = interestByKey.get(a.chargeId);
+        const charge = interest
+          ? { type: "late_interest", creditor: "owner", appliesFee: contract.feesOnLateInterest, amount: interest.amount }
+          : chargeRows.find((c) => c.id === a.chargeId);
+        if (!charge || charge.creditor !== "owner") return [];
+        return [
+          {
+            allocationId: a.chargeId,
+            chargeType: (charge.type === "rent" || charge.type === "late_interest" || charge.type === "one_off" ? charge.type : "other") as "rent" | "late_interest" | "one_off" | "other",
+            appliesFee: charge.appliesFee,
+            paid: a.amount,
+            chargeAmount: charge.amount,
+            fee: { type: contract.feeType, value: contract.feeValue },
+          },
+        ];
+      });
+      ownerDirect = ownerDirectAmount(items, owners.map((o) => ({ clientId: o.clientId, sharePct: o.sharePct ?? "100" })), contract.currency);
+    }
+
     // Money paid straight to the owner never enters an agency account.
     const cashAccountId = input.method === "transfer_to_owner" ? null : input.cashAccountId;
     if (input.method !== "transfer_to_owner" && !cashAccountId) throw new PaymentError("Elegí la caja o cuenta destino");
@@ -128,6 +163,7 @@ export async function recordTenantPayment(input: RecordPaymentInput) {
         clientId: tenant[0]?.clientId ?? null,
         method: input.method,
         cashAccountId,
+        ownerDirectAmount: ownerDirect,
         amount: plan.received,
         currency: contract.currency,
         notes: input.notes,
@@ -172,7 +208,7 @@ export async function recordTenantPayment(input: RecordPaymentInput) {
       await tx.insert(charges).values({
         organizationId,
         contractId: contract.id,
-        type: "adjustment",
+        type: "credit_balance",
         periodMonth: `${input.date.slice(0, 7)}-01`,
         title: "Saldo a favor",
         amount: `-${plan.allocation.surplus}`,

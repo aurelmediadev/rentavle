@@ -130,5 +130,9 @@ test("owner settlements: co-owners, fees, direct payments, owner debts and rever
   await expect(visible(page.getByRole("row", { name: /Laura Pérez/ }))).toContainText("$ 270.000");
   await expect(visible(page.getByRole("row", { name: /Jorge Pérez/ }))).toHaveCount(0);
 
+  // The cash box: 500.000 collected − 180.000 paid to Jorge (Laura's payout was annulled).
+  await page.goto("/caja");
+  await expect(visible(page.getByLabel("Saldo de Caja principal"))).toHaveText("$ 320.000");
+
   expect(problems, "browser errors").toEqual([]);
 });

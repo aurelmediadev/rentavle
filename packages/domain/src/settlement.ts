@@ -124,3 +124,23 @@ export function settlementTotals(lines: readonly SettlementLine[], currency: str
   const sum = (key: keyof SettlementTotals) => lines.reduce((t, l) => t.plus(l[key]), new Decimal(0)).toFixed(scale);
   return { gross: sum('gross'), fee: sum('fee'), payout: sum('payout'), feeOwed: sum('feeOwed') };
 }
+
+/**
+ * Split transfer: the tenant pays the agency only its fee (and the debts in its
+ * favour) and the owners the rest. Returns what went straight to the owners,
+ * computed exactly like the settlement lines so the accounts close to zero.
+ */
+export function ownerDirectAmount(
+  items: readonly Omit<SettleableItem, 'receivedBy'>[],
+  owners: readonly OwnerShare[],
+  currency: string,
+): string {
+  const lines = settlementLines(
+    items.map((i) => ({ ...i, receivedBy: 'split' as const })),
+    owners,
+    currency,
+  );
+  return lines
+    .reduce((sum, l) => sum.plus(l.gross).minus(l.fee), new Decimal(0))
+    .toFixed(currencyScale(currency));
+}

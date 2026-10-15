@@ -10,7 +10,7 @@ import { createTestDb, type TestUser } from '../../db/test/helpers';
 import { applyRentUpdates } from '../src/apply-rent-updates';
 
 const { contracts, rentPeriods, indexSeries, indexValues, properties, organizations } = schema;
-const { db, createUser, createOrganization, cleanup } = createTestDb();
+const { db, createUser, createOrganization, purgeLedger, cleanup } = createTestDb();
 
 let alice: TestUser;
 let orgId: string;
@@ -84,6 +84,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await purgeLedger(orgId);
   await db.admin.delete(contracts).where(eq(contracts.organizationId, orgId));
   await db.admin.delete(indexSeries).where(eq(indexSeries.id, seriesId));
   await cleanup();

@@ -1,15 +1,16 @@
 /** Owner settlements: no double settlement, and settled payments can't be annulled. */
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { chargeAllocations, charges, clients, contracts, movements, properties, settlementLines } from '../src/schema';
+import { cashAccounts, chargeAllocations, charges, clients, contracts, movements, properties, settlementLines } from '../src/schema';
 import { createTestDb, expectDbError, type TestUser } from './helpers';
 
-const { db, createUser, createOrganization, cleanup } = createTestDb();
+const { db, createUser, createOrganization, purgeLedger, cleanup } = createTestDb();
 
 let alice: TestUser;
 let orgA: string;
 let contractId: string;
 let ownerId: string;
+let cashId: string;
 
 async function paidCharge(creditor: 'owner' | 'administration' = 'owner') {
   return db.withUser(alice.claims, async (tx) => {
@@ -30,7 +31,7 @@ async function paidCharge(creditor: 'owner' | 'administration' = 'owner') {
       .returning();
     const [payment] = await tx
       .insert(movements)
-      .values({ organizationId: orgA, type: 'tenant_payment', date: '2026-10-12', contractId, method: 'cash', amount: '100000', currency: 'ARS', createdBy: alice.id })
+      .values({ organizationId: orgA, type: 'tenant_payment', date: '2026-10-12', contractId, method: 'cash', cashAccountId: cashId, amount: '100000', currency: 'ARS', createdBy: alice.id })
       .returning();
     const [allocation] = await tx
       .insert(chargeAllocations)
@@ -44,7 +45,7 @@ async function settle(allocationId: string) {
   return db.withUser(alice.claims, async (tx) => {
     const [settlement] = await tx
       .insert(movements)
-      .values({ organizationId: orgA, type: 'owner_settlement', date: '2026-10-15', contractId, clientId: ownerId, method: 'transfer_from_admin', amount: '90000', currency: 'ARS', createdBy: alice.id })
+      .values({ organizationId: orgA, type: 'owner_settlement', date: '2026-10-15', contractId, clientId: ownerId, method: 'transfer_from_admin', cashAccountId: cashId, amount: '90000', currency: 'ARS', createdBy: alice.id })
       .returning();
     await tx.insert(settlementLines).values({
       organizationId: orgA,
@@ -76,9 +77,12 @@ beforeAll(async () => {
     .values({ organizationId: orgA, propertyId: property!.id, startDate: '2026-01-01', endDate: '2027-12-31', originalEndDate: '2027-12-31', currency: 'ARS', initialAmount: '100000', firstBilledMonth: '2026-01-01' })
     .returning();
   contractId = contract!.id;
+  const [cash] = await db.admin.select().from(cashAccounts).where(and(eq(cashAccounts.organizationId, orgA), eq(cashAccounts.isDefault, true)));
+  cashId = cash!.id;
 });
 
 afterAll(async () => {
+  await purgeLedger(orgA);
   await db.admin.delete(movements).where(eq(movements.organizationId, orgA));
   await db.admin.delete(charges).where(eq(charges.organizationId, orgA));
   await db.admin.delete(contracts).where(eq(contracts.organizationId, orgA));

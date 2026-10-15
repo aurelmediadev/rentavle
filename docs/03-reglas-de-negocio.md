@@ -130,7 +130,7 @@ Ejemplo (contrato de $500.000 con 10% de honorarios, pagado el día 14 con punit
   - Transferencia al propietario → no entra dinero a la administración; se registra el cobro y el propietario ya recibió su parte (la administración queda acreedora de sus honorarios).
   - Transferencia dividida → honorarios y gastos a la administración; el resto, directo al propietario.
 - Cada cobro genera un **recibo** numerado y sus asientos contables (§9).
-- **Implementado:** la vista previa del navegador y el servidor usan el mismo cálculo (`payment-plan.ts`). La base valida cada imputación (no pagar de más, no cobrar deudas anuladas, mismo contrato) y mantiene el estado de cada deuda. Un cobro no se edita: se **anula** con motivo; su anulación libera las deudas y anula los punitorios y el saldo a favor que generó (si el saldo a favor ya se usó en otro cobro, hay que anular ese primero). Cada inmobiliaria arranca con una "Caja principal". Los asientos contables llegan con el punto 7.
+- **Implementado:** la vista previa del navegador y el servidor usan el mismo cálculo (`payment-plan.ts`). La base valida cada imputación (no pagar de más, no cobrar deudas anuladas, mismo contrato) y mantiene el estado de cada deuda. Un cobro no se edita: se **anula** con motivo; su anulación libera las deudas y anula los punitorios y el saldo a favor que generó (si el saldo a favor ya se usó en otro cobro, hay que anular ese primero). Cada inmobiliaria arranca con una "Caja principal". Sus asientos contables se registran solos (§9).
 
 ## 7. Liquidaciones al propietario
 
@@ -139,7 +139,7 @@ Ejemplo (contrato de $500.000 con 10% de honorarios, pagado el día 14 con punit
 - **Copropietarios:** se divide según el porcentaje de titularidad de la propiedad.
 - Solo se liquida lo **efectivamente cobrado** (nunca deudas pendientes del inquilino), salvo que la inmobiliaria adelante fondos (registrado como préstamo, F3).
 - Cada liquidación genera un **documento** con columnas Pago / Honorarios / A liquidar, y sus asientos.
-- **Implementado:** se liquida por propietario y moneda, agrupando todos sus contratos; el cálculo es puro (`packages/domain/src/settlement.ts`, `settlement-plan.ts`). Cada cobro a favor del propietario se reparte por su porcentaje de titularidad y queda marcado como liquidado para ese propietario (la base impide liquidarlo dos veces). Las deudas del propietario (gastos a su cargo, honorarios pendientes) se descuentan hasta el monto a pagar. Si el inquilino le pagó directo al propietario, no hay pago: sus honorarios quedan como deuda de ese propietario (solo de él, no del copropietario) y se descuentan en una próxima liquidación. Una liquidación se anula con motivo y libera sus cobros; un cobro ya liquidado no se puede anular sin anular antes la liquidación. El PDF y los asientos llegan con los puntos 7 y 8.
+- **Implementado:** se liquida por propietario y moneda, agrupando todos sus contratos; el cálculo es puro (`packages/domain/src/settlement.ts`, `settlement-plan.ts`). Cada cobro a favor del propietario se reparte por su porcentaje de titularidad y queda marcado como liquidado para ese propietario (la base impide liquidarlo dos veces). Las deudas del propietario (gastos a su cargo, honorarios pendientes) se descuentan hasta el monto a pagar. Si el inquilino le pagó directo al propietario, no hay pago: sus honorarios quedan como deuda de ese propietario (solo de él, no del copropietario) y se descuentan en una próxima liquidación. Una liquidación se anula con motivo y libera sus cobros; un cobro ya liquidado no se puede anular sin anular antes la liquidación. Sus asientos contables se registran solos (§9); el PDF llega con el punto 8.
 
 ## 8. Comunicaciones automáticas
 
@@ -165,7 +165,7 @@ Todo movimiento de dinero o de deuda genera asientos balanceados (débitos = cr�
 
 - `caja:<id>` / `banco:<id>`: dinero físico de la administración.
 - `inquilino:<contrato>`: lo que debe el inquilino (cuenta a cobrar).
-- `propietario:<cliente>`: lo que la administración le debe al propietario (cuenta a pagar).
+- `propietario:<contrato>`: lo que la administración les debe a los propietarios de un contrato, juntos (cuenta a pagar). Lo de cada copropietario sale de las liquidaciones; una cuenta por contrato evita diferencias de redondeo entre copropietarios.
 - `honorarios`: ingresos de la administración.
 - `gastos_administracion`: lo que la administración cobra para sí (por ejemplo, expensas que paga ella).
 
@@ -184,6 +184,12 @@ Saldo de caja: 615.000 − 481.500 = **133.500** = honorarios (53.500) + expensa
 
 - Los asientos **no se editan ni se borran**: una corrección es un asiento inverso (`reversa_de`).
 - Los saldos (caja, inquilino, propietario) se calculan desde los asientos; se pueden cachear, pero el libro es la fuente de verdad.
+- **Implementado:** los asientos los escribe solo la base (migración `rls_ledger`). Cada deuda y cada movimiento sincronizan sus asientos al confirmar la transacción: si su estado cambió (monto, anulación), se revierten los asientos vigentes y se registran los nuevos. Reglas:
+  - Deuda: debe la cuenta del deudor, haber la del acreedor (un descuento, al revés). Acreedor administración: `honorarios` si es un honorario, si no `gastos_administracion`. El saldo a favor no registra nada: el pago de más ya quedó a favor del inquilino en el cobro.
+  - Cobro: haber inquilino; debe caja, o propietarios si el inquilino les pagó directo. En la transferencia dividida se guarda cuánto fue directo a los propietarios (todo lo suyo menos los honorarios).
+  - Liquidación: debe propietarios (honorarios + pagos − deudas descontadas), haber honorarios y caja.
+  - Ingreso manual: caja / otros ingresos. Egreso manual: gastos / caja. Transferencia: caja destino / caja origen.
+  - La base rechaza asientos desbalanceados, modificaciones y borrados. Pantalla **Caja**: saldo de cada caja y cuenta, libro de caja mensual con saldo, ingresos, egresos y transferencias (se anulan como cualquier movimiento). Cada movimiento muestra sus asientos.
 
 ## 10. Numeración y documentos
 

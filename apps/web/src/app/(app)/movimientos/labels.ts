@@ -12,4 +12,5 @@ export const PAYMENT_METHOD: Record<string, string> = {
   transfer_to_owner: "Transferencia al propietario",
   split_transfer: "Transferencia dividida",
   online: "Pago online",
+  transfer_from_admin: "Transferencia de la administración",
 };

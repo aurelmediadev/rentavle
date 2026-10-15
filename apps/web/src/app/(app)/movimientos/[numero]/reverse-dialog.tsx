@@ -16,8 +16,8 @@ import {
 import { type FormState, initialFormState } from "@/lib/forms";
 import { reversePayment } from "../../contratos/[numero]/payment-actions";
 
-export function ReversePaymentDialog({ movementId, kind = "payment" }: { movementId: string; kind?: "payment" | "settlement" }) {
-  const noun = kind === "settlement" ? "liquidación" : "cobro";
+export function ReversePaymentDialog({ movementId, kind = "payment" }: { movementId: string; kind?: "payment" | "settlement" | "movement" }) {
+  const noun = kind === "settlement" ? "liquidación" : kind === "movement" ? "movimiento" : "cobro";
   const [open, setOpen] = useState(false);
   const [state, action] = useActionState(async (prev: FormState, formData: FormData) => {
     const result = await reversePayment(movementId, prev, formData);
@@ -40,7 +40,9 @@ export function ReversePaymentDialog({ movementId, kind = "payment" }: { movemen
         <DialogHeader>
           <DialogTitle>Anular {noun}</DialogTitle>
           <DialogDescription>
-            {kind === "settlement"
+            {kind === "movement"
+              ? "Se revierten sus asientos y el saldo de la caja vuelve a como estaba. El movimiento queda en el historial como anulado."
+              : kind === "settlement"
               ? "Los cobros vuelven a quedar pendientes de liquidar y se anulan los honorarios que generó. La liquidación queda en el historial como anulada."
               : "Las deudas que pagó vuelven a estar pendientes y se anulan los punitorios y el saldo a favor que generó. El cobro queda en el historial como anulado."}
           </DialogDescription>
