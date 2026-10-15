@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto y la edición de condiciones (las alertas de vencimiento salen por email desde el punto 9). Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF), 9 (comunicaciones) y 10 (panel y búsqueda) listos. Punto 11 (SaaS) listo salvo la verificación de teléfono (falta elegir proveedor de SMS/WhatsApp) y conectar MercadoPago real (hoy corre con el simulador; el usuario va a pasar las credenciales de prueba). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto y la edición de condiciones (las alertas de vencimiento salen por email desde el punto 9). Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF), 9 (comunicaciones), 10 (panel y búsqueda) y 12 (primeros pasos y datos de ejemplo) listos. Punto 11 (SaaS) listo salvo la verificación de teléfono (falta elegir proveedor de SMS/WhatsApp) y conectar MercadoPago real (hoy corre con el simulador; el usuario va a pasar las credenciales de prueba). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 

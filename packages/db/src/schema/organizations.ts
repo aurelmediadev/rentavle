@@ -1,5 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
+  type AnyPgColumn,
+  boolean,
   char,
   check,
   index,
@@ -64,6 +66,10 @@ export const organizations = pgTable(
     planId: uuid().references(() => plans.id, { onDelete: 'restrict' }),
     /** Extra blocks of contracts on top of the plan (biggest plan only). */
     extraContractBlocks: integer().notNull().default(0),
+    /** Sample agency with demo data, to try the app (deleted as a whole). */
+    isSample: boolean().notNull().default(false),
+    /** The real agency a sample belongs to. */
+    sampleOf: uuid().references((): AnyPgColumn => organizations.id, { onDelete: 'cascade' }),
     trialEndsAt: timestamp({ withTimezone: true }),
     onboardingCompletedAt: timestamp({ withTimezone: true }),
     createdBy: uuid().references(() => authUsers.id, { onDelete: 'set null' }),

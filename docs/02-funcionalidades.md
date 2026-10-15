@@ -17,6 +17,8 @@ Las reglas de cálculo están en [03-reglas-de-negocio](03-reglas-de-negocio.md)
 | Una persona en varias organizaciones (cambio de organización) | F2 |
 | Multisucursal (sucursales dentro de una organización) | F4 |
 
+> **Implementado (primeros pasos):** checklist en el panel (datos de la inmobiliaria → cuenta bancaria → primer contrato → primer cobro → equipo), que se marca solo según los datos cargados y un administrador puede ocultar. **Datos de ejemplo** en una inmobiliaria aparte (`create_sample_organization`): una por inmobiliaria, sin CUIT, con su propia prueba de 21 días y el límite de 10 contratos, así no estira la prueba real. Se borra entera (es la única forma de borrar asientos), y nunca mezcla datos inventados con la caja real. El set de ejemplo (`packages/jobs/src/sample-data.ts`) es argentino; otros países van a necesitar el suyo.
+
 ## 2. Clientes (propietarios, inquilinos, garantes)
 
 Un cliente es una persona o empresa. Su rol (propietario, inquilino, garante) depende del contrato, no del cliente.
@@ -159,12 +161,12 @@ Un cliente es una persona o empresa. Su rol (propietario, inquilino, garante) de
 | Función | Fase |
 |---|---|
 | Panel: contratos activos, cobrado vs. pendiente del mes, honorarios del mes, vencimientos próximos, actualizaciones del mes | MVP |
-
-> **Implementado (panel):** contratos activos, cobrado en el mes, pendiente de las deudas del mes, deuda vencida, honorarios del mes (de la contabilidad: se reconocen al liquidar), deudas vencidas por contrato con acceso a cobrar, actualizaciones de este mes y el próximo, propietarios para liquidar y contratos que terminan en 60 días. Una inmobiliaria sin contratos ve los primeros pasos. Búsqueda global en la barra superior (Ctrl K): contratos (por número, dirección o partes), clientes (nombre, DNI, CUIT, email, teléfono), propiedades y movimientos por número.
 | Morosidad por antigüedad | F2 |
 | Rentabilidad y estado de cuenta por propietario | F2 |
 | Búsqueda global (contratos, clientes, propiedades, movimientos) | MVP |
 | Exportación completa de los datos de la organización | F2 |
+
+> **Implementado (panel):** contratos activos, cobrado en el mes, pendiente de las deudas del mes, deuda vencida, honorarios del mes (de la contabilidad: se reconocen al liquidar), deudas vencidas por contrato con acceso a cobrar, actualizaciones de este mes y el próximo, propietarios para liquidar y contratos que terminan en 60 días. Una inmobiliaria sin contratos ve los primeros pasos. Búsqueda global en la barra superior (Ctrl K): contratos (por número, dirección o partes), clientes (nombre, DNI, CUIT, email, teléfono), propiedades y movimientos por número.
 
 ## 15. Plataforma (SaaS)
 

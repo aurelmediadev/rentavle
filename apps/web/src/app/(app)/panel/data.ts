@@ -158,3 +158,41 @@ export async function dashboardSummary() {
   });
 }
 
+
+/**
+ * First steps (docs/02-funcionalidades.md §1): agency data → bank account → first
+ * contract → first payment → team. Each step is done when the data exists.
+ */
+export async function onboardingState() {
+  const { organizationId, role } = await getActiveMembership();
+  return asUser(async (tx) => {
+    const [org] = await tx.select().from(organizations).where(eq(organizations.id, organizationId));
+    const count = (q: Promise<{ n: number }[]>) => q.then((r) => r[0]?.n ?? 0);
+    const n = sql<number>`count(*)::int`;
+    const [banks, contractsCount, payments, members, invitations, samples, parent] = await Promise.all([
+      count(tx.select({ n }).from(schema.cashAccounts).where(and(eq(schema.cashAccounts.organizationId, organizationId), eq(schema.cashAccounts.type, "bank")))),
+      count(tx.select({ n }).from(contracts).where(and(eq(contracts.organizationId, organizationId), isNull(contracts.deletedAt)))),
+      count(tx.select({ n }).from(movements).where(and(eq(movements.organizationId, organizationId), eq(movements.type, "tenant_payment")))),
+      count(tx.select({ n }).from(schema.memberships).where(eq(schema.memberships.organizationId, organizationId))),
+      count(tx.select({ n }).from(schema.invitations).where(eq(schema.invitations.organizationId, organizationId))),
+      tx.select({ id: organizations.id }).from(organizations).where(eq(organizations.sampleOf, organizationId)),
+      org?.sampleOf ? tx.select({ name: organizations.name }).from(organizations).where(eq(organizations.id, org.sampleOf)) : Promise.resolve([]),
+    ]);
+    const steps = [
+      { key: "agency", title: "Datos de la inmobiliaria", text: "Razón social, domicilio, logo y firma para los recibos.", href: "/configuracion/inmobiliaria", done: Boolean(org?.legalName && org.address) },
+      { key: "bank", title: "Cuenta bancaria", text: "Si cobrás por transferencia, sumala como caja.", href: "/caja", done: banks > 0 },
+      { key: "contract", title: "Primer contrato", text: "Con su propiedad, propietarios e inquilino. También los que están en curso.", href: "/contratos/nuevo", done: contractsCount > 0 },
+      { key: "payment", title: "Primer cobro", text: "Registrá un pago: sale el recibo y la caja se actualiza sola.", href: "/contratos", done: payments > 0 },
+      { key: "team", title: "Tu equipo", text: "Invitá a quienes trabajan con vos; los usuarios son ilimitados.", href: "/configuracion/usuarios", done: members + invitations > 1 },
+    ];
+    return {
+      isAdmin: role === "admin",
+      isSample: Boolean(org?.isSample),
+      parentName: parent[0]?.name ?? null,
+      hasSample: samples.length > 0,
+      dismissed: Boolean(org?.onboardingCompletedAt),
+      steps,
+      done: steps.filter((s) => s.done).length,
+    };
+  });
+}

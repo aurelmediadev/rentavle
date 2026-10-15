@@ -218,6 +218,20 @@
       "when": 1792094186106,
       "tag": "20261015195626_rls_platform",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792105225699,
+      "tag": "20261015230025_sample_organizations",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792105227185,
+      "tag": "20261015230027_rls_sample_organizations",
+      "breakpoints": true
     }
   ]
 }

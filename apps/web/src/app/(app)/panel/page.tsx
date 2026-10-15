@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowRight, Building2, Contact, FileText, Store } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PageLoading } from "@/components/page-loading";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,8 @@ import { clientName, formatAddress } from "@/lib/format";
 import { formatMoney } from "@/lib/numbers";
 import { listDueUpdates } from "../contratos/actualizaciones/data";
 import { listOwnersToSettle } from "../liquidaciones/data";
-import { type Totals, dashboardSummary } from "./data";
+import { type Totals, dashboardSummary, onboardingState } from "./data";
+import { OnboardingCard, SampleBanner } from "./onboarding";
 
 export const metadata: Metadata = { title: "Panel · Rentavle" };
 
@@ -55,7 +56,7 @@ function Stat({ label, value, detail, href }: { label: string; value: string; de
 }
 
 async function Dashboard() {
-  const [summary, updates, owners] = await Promise.all([dashboardSummary(), listDueUpdates(), listOwnersToSettle()]);
+  const [summary, updates, owners, onboarding] = await Promise.all([dashboardSummary(), listDueUpdates(), listOwnersToSettle(), onboardingState()]);
   const { org, today } = summary;
   const main = org.currency;
   const trialDaysLeft =
@@ -72,43 +73,28 @@ async function Dashboard() {
     </div>
   );
 
+  const firstSteps = onboarding.isSample ? (
+    <SampleBanner parentName={onboarding.parentName} isAdmin={onboarding.isAdmin} />
+  ) : !onboarding.dismissed && onboarding.done < onboarding.steps.length ? (
+    <OnboardingCard state={onboarding} />
+  ) : null;
+
+  // Nothing to show yet: just the first steps.
   if (summary.activeContracts === 0 && summary.overdue.length === 0) {
-    const steps = [
-      { href: "/configuracion/inmobiliaria", icon: Store, title: "Datos de la inmobiliaria", text: "Razón social, CUIT, logo y firma para los recibos." },
-      { href: "/clientes/nuevo", icon: Contact, title: "Propietarios e inquilinos", text: "Con su email y celular, para mandarles recibos y avisos." },
-      { href: "/propiedades/nueva", icon: Building2, title: "Propiedades", text: "Con sus propietarios y el porcentaje de cada uno." },
-      { href: "/contratos/nuevo", icon: FileText, title: "Contratos", text: "También los que ya están en curso: se cargan desde el mes que quieras." },
-    ];
     return (
       <div className="grid gap-6">
         {header}
-        <Card>
-          <CardHeader>
-            <CardTitle>Primeros pasos</CardTitle>
-            <CardDescription>Cuando cargues el primer contrato, acá vas a ver lo cobrado, lo pendiente, la mora y lo que hay que liquidar.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            {steps.map((s, i) => (
-              <Link key={s.href} href={s.href} className="hover:bg-muted/50 flex gap-3 rounded-lg border p-4">
-                <s.icon className="text-muted-foreground mt-0.5 size-5 shrink-0" />
-                <div>
-                  <p className="font-medium">
-                    {i + 1}. {s.title}
-                  </p>
-                  <p className="text-muted-foreground text-sm">{s.text}</p>
-                </div>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+        {firstSteps ?? <p className="text-muted-foreground text-sm">Cuando cargues el primer contrato, acá vas a ver lo cobrado, lo pendiente, la mora y lo que hay que liquidar.</p>}
       </div>
     );
   }
+
 
   const monthName = new Intl.DateTimeFormat("es-AR", { month: "long", timeZone: "UTC" }).format(new Date(`${summary.monthStart}T00:00:00Z`));
   return (
     <div className="grid gap-6">
       {header}
+      {firstSteps}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Stat
