@@ -184,7 +184,7 @@ Un cliente es una persona o empresa. Su rol (propietario, inquilino, garante) de
 > - Prueba de 21 días fija (la decide la base, no quien crea la cuenta), con CUIT obligatorio y único y email confirmado. **Falta** verificar el teléfono: requiere elegir un proveedor de SMS/WhatsApp.
 > - Cuenta vencida o cancelada: solo lectura, aplicado en la base para todas las tablas de negocio; la app muestra un aviso y las acciones devuelven un mensaje. La exportación completa (JSON, `/api/exportar`) sigue disponible.
 > - Suscripción con débito automático de MercadoPago (`packages/billing`): el estado llega por webhook firmado y siempre se vuelve a leer de la API de MercadoPago. Sin credenciales, fuera de producción, un simulador local reemplaza al checkout. Pago anual con 2 meses gratis; cambiar de plan cancela el débito anterior.
-> - **Falta** el panel interno de administración.
+> - Panel interno (`/admin`, solo el equipo de Rentavle: tabla `platform_admins`, alta con `pnpm --filter @rentavle/jobs grant-platform-admin <email>`): organizaciones con su uso, suscripciones y pagos; cambiar estado, plan, bloques extra o fin de la prueba (por ejemplo, acceso sin cargo para pilotos), siempre con motivo y registrado en `platform_audit_log`. El equipo no tiene permisos extra sobre los datos de las inmobiliarias: todo pasa por funciones de la base que verifican el rol.
 
 ## Fuera de alcance (por ahora)
 

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import postgres from "postgres";
 import { expect, type Page } from "@playwright/test";
 
 // Local Supabase catches all auth emails in Mailpit (supabase/config.toml, [local_smtp]).
@@ -82,4 +83,14 @@ export async function createAgency(page: Page, name = `Inmobiliaria E2E ${Date.n
   await page.getByRole("button", { name: "Empezar" }).click();
   await expect(page).toHaveURL(/\/panel/);
   return { email, name };
+}
+
+/** Makes a user Rentavle staff (internal panel). Local database only, like the CLI command. */
+export async function grantPlatformAdmin(email: string) {
+  const sql = postgres(process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:55322/postgres", { prepare: false });
+  try {
+    await sql`insert into public.platform_admins (user_id) select id from auth.users where email = ${email} on conflict do nothing`;
+  } finally {
+    await sql.end();
+  }
 }

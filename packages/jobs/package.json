@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "generate-charges": "tsx src/cli.ts generate-charges",
     "seed-demo": "tsx src/seed-demo.ts",
-    "send-communications": "tsx src/cli.ts send-communications"
+    "send-communications": "tsx src/cli.ts send-communications",
+    "grant-platform-admin": "tsx src/cli.ts grant-platform-admin"
   },
   "dependencies": {
     "@rentavle/country": "workspace:*",

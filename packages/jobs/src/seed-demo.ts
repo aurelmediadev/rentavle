@@ -67,6 +67,8 @@ try {
     `);
     return rows[0]!.id;
   });
+  // Local demo user doubles as Rentavle staff, to try the internal panel (/admin).
+  await db.admin.insert(schema.platformAdmins).values({ userId: user.id }).onConflictDoNothing();
 
   // 3. Clients.
   const person = (firstName: string, lastName: string, docNumber: string, email: string, phone: string) => ({
