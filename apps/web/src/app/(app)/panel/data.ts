@@ -2,7 +2,7 @@ import "server-only";
 import Decimal from "decimal.js";
 import { and, asc, eq, gte, inArray, isNull, lt, lte, ne, sql } from "drizzle-orm";
 import { schema } from "@rentavle/db";
-import { addMonths, formatYearMonth } from "@rentavle/domain";
+import { accessFor, addMonths, formatYearMonth } from "@rentavle/domain";
 import { asUser, getActiveMembership } from "@/lib/auth";
 import { addDays, currentMonthIn, todayIn } from "@/lib/dates";
 
@@ -142,6 +142,8 @@ export async function dashboardSummary() {
 
     return {
       org: org[0]!,
+      // Same rule as the subscription page (exact hours left, rounded up).
+      access: accessFor({ status: org[0]!.status, trialEndsAt: org[0]!.trialEndsAt }, new Date()),
       today,
       monthStart,
       activeContracts: active[0]?.count ?? 0,

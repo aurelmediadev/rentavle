@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto y la edición de condiciones (las alertas de vencimiento salen por email desde el punto 9). Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF), 9 (comunicaciones), 10 (panel y búsqueda) y 12 (primeros pasos y datos de ejemplo) listos. Punto 11 (SaaS) listo salvo la verificación de teléfono (falta elegir proveedor de SMS/WhatsApp) y conectar MercadoPago real (hoy corre con el simulador; el usuario va a pasar las credenciales de prueba). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto y la edición de condiciones (las alertas de vencimiento salen por email desde el punto 9). Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF), 9 (comunicaciones), 10 (panel y búsqueda), 12 (primeros pasos y datos de ejemplo) y 13 (sitio público: landing, precios desde la base, términos y privacidad en borrador) listos. Punto 11 (SaaS) listo salvo la verificación de teléfono (falta elegir proveedor de SMS/WhatsApp) y conectar MercadoPago real (hoy corre con el simulador; el usuario va a pasar las credenciales de prueba). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 
@@ -19,6 +19,7 @@ Esta versión tiene cambios grandes: leer `apps/web/node_modules/next/dist/docs/
 - React 19 reinicia el formulario después de cada Server Action: **todo** error de validación devuelve `values: formValues(formData)` para no perder lo cargado. Las listas dinámicas (contactos, propietarios) son estado del cliente.
 - Formularios con estado local que dependen de datos del servidor (por ejemplo, el cobro) llevan una `key` derivada de esos datos: si no, al volver a la página se reutiliza el estado viejo.
 - El test e2e falla si hay errores en la consola del navegador: así se detectan los avisos de validación de Next.
+- `next build` pisa `.next`: reiniciar el servidor de desarrollo después de un build, y no navegar la app mientras corre la suite e2e. Si fallan muchos e2e sin relación entre sí y la suite tarda el doble, es eso (no el código).
 
 ## Base de datos
 

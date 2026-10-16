@@ -232,6 +232,13 @@
       "when": 1792105227185,
       "tag": "20261015230027_rls_sample_organizations",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792107185992,
+      "tag": "20261015233305_public_plans",
+      "breakpoints": true
     }
   ]
 }

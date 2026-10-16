@@ -33,7 +33,7 @@ Objetivo: una inmobiliaria real puede administrar todos sus alquileres y dejar E
 10. **Panel:** contratos activos, cobrado vs. pendiente, honorarios del mes, vencimientos y actualizaciones.
 11. **SaaS:** planes por contratos activos, prueba de 21 días con controles anti-duplicado, solo lectura al vencer, suscripción con MercadoPago, panel interno de administración.
 12. **Onboarding:** asistente de primeros pasos y datos de ejemplo opcionales.
-13. **Sitio público:** landing, precios, registro.
+13. **Sitio público:** landing, precios, registro. *(Hecho: los precios se leen de la tabla `plans` con caché de horas; términos y privacidad son borradores a revisar con un abogado antes del lanzamiento.)*
 
 **Salida:** 3 inmobiliarias piloto operan un mes completo (generación de deudas → cobros → liquidaciones → avisos) y la caja de Rentavle coincide con su control manual.
 

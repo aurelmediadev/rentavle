@@ -59,8 +59,7 @@ async function Dashboard() {
   const [summary, updates, owners, onboarding] = await Promise.all([dashboardSummary(), listDueUpdates(), listOwnersToSettle(), onboardingState()]);
   const { org, today } = summary;
   const main = org.currency;
-  const trialDaysLeft =
-    org.status === "trialing" && org.trialEndsAt ? Math.max(0, daysBetween(today, org.trialEndsAt.toISOString().slice(0, 10))) : null;
+  const trialDaysLeft = summary.access.kind === "trial" ? summary.access.daysLeft : null;
 
   const header = (
     <div className="flex flex-wrap items-center gap-3">

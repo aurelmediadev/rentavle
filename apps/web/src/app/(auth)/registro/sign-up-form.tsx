@@ -40,6 +40,17 @@ export function SignUpForm() {
         hint="Al menos 8 caracteres."
       />
       <SubmitButton>Crear cuenta</SubmitButton>
+      <p className="text-muted-foreground text-center text-xs">
+        Al crear la cuenta aceptás los{" "}
+        <Link href="/terminos" className="underline underline-offset-4">
+          términos y condiciones
+        </Link>{" "}
+        y la{" "}
+        <Link href="/privacidad" className="underline underline-offset-4">
+          política de privacidad
+        </Link>
+        .
+      </p>
       <p className="text-muted-foreground text-center text-sm">
         ¿Ya tenés cuenta?{" "}
         <Link href={next ? `/ingresar?next=${encodeURIComponent(next)}` : "/ingresar"} className="text-foreground underline underline-offset-4">
