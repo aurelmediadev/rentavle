@@ -17,6 +17,8 @@ import { listPropertyContracts } from "../../contratos/data";
 import { contractStatus } from "../../contratos/status";
 import { formatDate, todayIn } from "@/lib/dates";
 import { propertyStatusLabel, propertyTypeLabel } from "../labels";
+import { FilesCard } from "@/components/files-card";
+import { listFiles } from "@/lib/files";
 import { ArchivePropertyButton } from "./property-actions";
 
 export const metadata: Metadata = { title: "Propiedad · Rentavle" };
@@ -45,7 +47,7 @@ async function PropertyDetail({ params }: Pick<PageProps<"/propiedades/[numero]"
   if (!result) notFound();
 
   const { property, owners } = result;
-  const propertyContracts = await listPropertyContracts(property.id);
+  const [propertyContracts, attachments] = await Promise.all([listPropertyContracts(property.id), listFiles("property", property.id)]);
   const today = todayIn(timezone);
   const pack = getCountryPack(countryCode);
   const archived = property.deletedAt !== null;
@@ -142,6 +144,8 @@ async function PropertyDetail({ params }: Pick<PageProps<"/propiedades/[numero]"
           )}
         </CardContent>
       </Card>
+
+      <FilesCard entityType="property" entityId={property.id} files={attachments} description="Escritura, planos, fotos, reglamento." />
     </div>
   );
 }

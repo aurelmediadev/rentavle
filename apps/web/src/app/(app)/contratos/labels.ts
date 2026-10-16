@@ -53,3 +53,15 @@ export const EVENT_LABEL: Record<string, string> = {
   finished: "Finalizado",
   reopened: "Reabierto",
 };
+
+/** Contract conditions, as named in the history of changes. */
+export const CONDITION_LABEL: Record<string, string> = {
+  feeType: "tipo de honorarios",
+  feeValue: "honorarios",
+  feesOnLateInterest: "honorarios sobre punitorios",
+  lateInterestDailyPct: "punitorio diario",
+  dueDay: "día de vencimiento",
+  lateInterestFrom: "desde cuándo corren los punitorios",
+  collectionMethod: "forma de cobro",
+  notes: "notas",
+};

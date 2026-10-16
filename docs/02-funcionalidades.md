@@ -156,6 +156,8 @@ Un cliente es una persona o empresa. Su rol (propietario, inquilino, garante) de
 | Notas en contrato/cliente/propiedad, con notas destacadas | MVP |
 | Archivos adjuntos por entidad | MVP |
 
+> **Implementado (archivos):** contrato firmado y anexos, comprobantes de cobros y movimientos, y archivos de clientes y propiedades. PDF, imágenes o Word de hasta 10 MB, en un bucket privado por inmobiliaria; se suben directo del navegador con una URL firmada y se descargan con links que vencen al minuto. **Edición de condiciones del contrato:** honorarios, punitorios, día de vencimiento, forma de cobro y notas, con motivo y registro en el historial; honorarios y punitorios se usan desde el próximo cobro o liquidación, el día de vencimiento en las deudas nuevas. Monto y actualizaciones no se editan (se corrigen desde Actualizaciones).
+
 ## 14. Panel y reportes
 
 | Función | Fase |

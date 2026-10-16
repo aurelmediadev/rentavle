@@ -16,6 +16,8 @@ import { CommunicationsCard } from "@/components/communications-card";
 import { getActiveMembership } from "@/lib/auth";
 import { communicationHistory, documentDraft } from "@/lib/communications";
 import { DocumentCard } from "./document-card";
+import { FilesCard } from "@/components/files-card";
+import { listFiles } from "@/lib/files";
 import { ReversePaymentDialog } from "./reverse-dialog";
 
 export const metadata: Metadata = { title: "Movimiento · Rentavle" };
@@ -45,10 +47,11 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
   if (!data) notFound();
   const { movement, contractNumber, property, client, account, toAccount, allocations, credits, lines, ownerFees, entries, document } = data;
   const isSettlement = movement.type === "owner_settlement";
-  const [draft, history, { timezone }] = await Promise.all([
+  const [draft, history, { timezone }, attachments] = await Promise.all([
     document ? documentDraft(document.id) : null,
     communicationHistory({ movementId: movement.id }),
     getActiveMembership(),
+    listFiles("movement", movement.id),
   ]);
   const isManual = movement.type === "manual_income" || movement.type === "manual_expense" || movement.type === "transfer";
   const fmt = (v: string) => formatMoney(v, movement.currency);
@@ -262,6 +265,14 @@ async function Movement({ params, searchParams }: Pick<PageProps<"/movimientos/[
           )}
         </CardContent>
       </Card>
+
+      <FilesCard
+        entityType="movement"
+        entityId={movement.id}
+        files={attachments}
+        title="Comprobantes"
+        description={movement.type === "tenant_payment" ? "Transferencia, ticket o captura del pago." : "Facturas, tickets o constancias."}
+      />
 
       {document && <CommunicationsCard rows={history} timezone={timezone} />}
     </div>

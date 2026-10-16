@@ -15,6 +15,8 @@ import { communicationHistory } from "@/lib/communications";
 import { countryFormOptions, optionLabel } from "@/lib/country";
 import { clientName, formatAddress } from "@/lib/format";
 import { getClientByNumber } from "../data";
+import { FilesCard } from "@/components/files-card";
+import { listFiles } from "@/lib/files";
 import { ArchiveClientButton, BankAccountForm, RemoveBankAccountButton } from "./client-actions";
 
 export const metadata: Metadata = { title: "Cliente · Rentavle" };
@@ -43,7 +45,7 @@ async function ClientDetail({ params }: Pick<PageProps<"/clientes/[numero]">, "p
   if (!Number.isInteger(number) || number < 1) notFound();
   const [result, { countryCode, timezone }] = await Promise.all([getClientByNumber(number), getActiveMembership()]);
   if (!result) notFound();
-  const history = await communicationHistory({ clientId: result.client.id });
+  const [history, attachments] = await Promise.all([communicationHistory({ clientId: result.client.id }), listFiles("client", result.client.id)]);
 
   const { client, contacts, accounts, owned } = result;
   const pack = getCountryPack(countryCode);
@@ -182,6 +184,8 @@ async function ClientDetail({ params }: Pick<PageProps<"/clientes/[numero]">, "p
           <BankAccountForm clientId={client.id} currencies={countryFormOptions(countryCode).currencies} />
         </CardContent>
       </Card>
+
+      <FilesCard entityType="client" entityId={client.id} files={attachments} description="DNI, recibos de sueldo, garantías." />
 
       <CommunicationsCard rows={history} timezone={timezone} />
     </div>

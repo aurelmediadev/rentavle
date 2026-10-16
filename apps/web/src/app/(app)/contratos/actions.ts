@@ -6,7 +6,7 @@ import { z } from "zod";
 import { generateCharges } from "@rentavle/jobs";
 import { db } from "@/lib/db";
 import { type FormState, formValues } from "@/lib/forms";
-import { parseContractForm } from "./contract-input";
+import { parseConditionsForm, parseContractForm } from "./contract-input";
 import {
   ContractConflictError,
   type EndDateChange,
@@ -14,6 +14,7 @@ import {
   changeEndDate,
   insertContract,
   setFinished,
+  updateContractConditions,
 } from "./data";
 import { READ_ONLY_MESSAGE, readOnlyBlock } from "@/lib/subscription";
 
@@ -94,4 +95,15 @@ export async function finishContract(contractId: string, finished: boolean): Pro
   revalidatePath("/contratos");
   revalidatePath("/propiedades");
   return {};
+}
+
+/** Changes fees, late interest, due day, collection method or notes; logged in the contract history. */
+export async function editContractConditions(contractId: string, _: FormState, formData: FormData): Promise<FormState> {
+  const blocked = await readOnlyBlock(formData);
+  if (blocked) return blocked;
+  const parsed = parseConditionsForm(formData);
+  if (!parsed.ok) return parsed.state;
+  const { changed } = await updateContractConditions(contractId, parsed.data);
+  revalidatePath("/contratos");
+  return { ok: true, message: changed ? "Condiciones actualizadas" : "No había cambios" };
 }

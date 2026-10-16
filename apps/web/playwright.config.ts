@@ -4,6 +4,8 @@ import { defineConfig } from "@playwright/test";
 // Uses the installed Microsoft Edge locally; CI installs Chromium instead.
 export default defineConfig({
   testDir: "./e2e",
+  // Signs in and visits the main routes once so the dev server has them compiled.
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: false,
   timeout: 90_000,
   // The dev server compiles each route on first visit, which can take several seconds.

@@ -12,3 +12,4 @@ export * from './communications';
 export * from './plans';
 export * from './subscriptions';
 export * from './platform';
+export * from './files';

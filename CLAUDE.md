@@ -4,7 +4,7 @@ SaaS de administración de alquileres para inmobiliarias de Latinoamérica (prim
 
 ## Estado
 
-Fase 0 (fundaciones) implementada. Fase 1 en curso: clientes y propiedades (punto 1) y contratos (punto 2) listos; del punto 2 faltan el archivo adjunto y la edición de condiciones (las alertas de vencimiento salen por email desde el punto 9). Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF), 9 (comunicaciones), 10 (panel y búsqueda), 12 (primeros pasos y datos de ejemplo) y 13 (sitio público: landing, precios desde la base, términos y privacidad en borrador) listos. Punto 11 (SaaS) listo salvo la verificación de teléfono (falta elegir proveedor de SMS/WhatsApp) y conectar MercadoPago real (hoy corre con el simulador; el usuario va a pasar las credenciales de prueba). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
+Fase 0 (fundaciones) implementada. Fase 1 en curso: puntos 1 (clientes y propiedades) y 2 (contratos, con archivos adjuntos y edición de condiciones; las alertas de vencimiento salen por email desde el punto 9) listos. Puntos 3 (índices y aumentos), 4 (deudas), 5 (cobros, con comprobantes adjuntos), 6 (liquidaciones), 7 (caja y contabilidad), 8 (documentos PDF), 9 (comunicaciones), 10 (panel y búsqueda), 12 (primeros pasos y datos de ejemplo) y 13 (sitio público: landing, precios desde la base, términos y privacidad en borrador) listos. Punto 11 (SaaS) listo salvo la verificación de teléfono (falta elegir proveedor de SMS/WhatsApp) y conectar MercadoPago real (hoy corre con el simulador; el usuario va a pasar las credenciales de prueba). Seguir el orden de [`docs/06-roadmap.md`](docs/06-roadmap.md): no empezar una fase sin cerrar la anterior. Cómo correr el proyecto: [`README.md`](README.md).
 
 ## Next.js 16 (Cache Components activado)
 
@@ -33,6 +33,7 @@ Esta versión tiene cambios grandes: leer `apps/web/node_modules/next/dist/docs/
 - Los usuarios no pueden cambiar país, moneda ni suscripción de la organización (trigger `protect_organizations`): eso solo lo hace código de confianza.
 - Suscripción: el estado de la organización solo lo cambia la sincronización de cobros (`packages/billing`, webhook o simulador). Las cuentas vencidas son de solo lectura en la base (trigger `require_writable`): cada Server Action nueva que modifica datos de negocio empieza con `readOnlyBlock(formData)` (o `assertWritable()`) de `src/lib/subscription.ts`, y cada tabla nueva de negocio se agrega a ese trigger.
 - Panel interno (`/admin`): el equipo de Rentavle no tiene permisos RLS extra; lee y modifica organizaciones solo con las funciones `admin_*` de la base, que verifican `private.is_platform_admin()` y registran cada cambio.
+- Archivos adjuntos: tabla `files` + bucket privado `files` de Storage bajo `<organización>/...`. El navegador sube directo a una URL firmada (`lib/files.ts`): nunca pasar archivos por Server Actions (Vercel corta a 4,5 MB).
 - Cada tabla nueva de negocio: `organization_id`, RLS con `private.is_member()` / `private.has_role()`, y casos en `packages/db/test/tenant-isolation.test.ts`.
 
 ## Stack

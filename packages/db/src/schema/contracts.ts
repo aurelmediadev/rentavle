@@ -89,7 +89,6 @@ export const contracts = pgTable(
     dueDay: integer().notNull().default(10),
     lateInterestFrom: lateInterestFrom().notNull().default('after_due'),
     collectionMethod: collectionMethod().notNull().default('cash'),
-    filePath: text(),
     notes: text(),
     renewedFromContractId: uuid(),
     finishedAt: timestamp({ withTimezone: true }),

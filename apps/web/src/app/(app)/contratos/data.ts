@@ -1,11 +1,12 @@
 import "server-only";
+import Decimal from "decimal.js";
 import { and, asc, desc, eq, ilike, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { schema, type Transaction } from "@rentavle/db";
 import { formatYearMonth, parseYearMonth, planPeriods, updatePeriods } from "@rentavle/domain";
 import { asUser, getActiveMembership } from "@/lib/auth";
 import { addDays, dateToMonth, monthToDate, todayIn } from "@/lib/dates";
 import { trimDecimal } from "@/lib/numbers";
-import { type ContractInput, FIXED_PCT, NO_UPDATE } from "./contract-input";
+import { type ContractConditions, type ContractInput, FIXED_PCT, NO_UPDATE } from "./contract-input";
 
 const { contracts, contractParties, rentPeriods, contractEvents, clients, properties, propertyOwners, indexSeries, profiles } =
   schema;
@@ -515,5 +516,47 @@ export async function listPropertyContracts(propertyId: string) {
           .where(and(inArray(contractParties.contractId, rows.map((r) => r.id)), eq(contractParties.role, "tenant")))
       : [];
     return rows.map((r) => ({ ...r, tenants: tenants.filter((t) => t.contractId === r.id) }));
+  });
+}
+
+/**
+ * Changes the contract's conditions (fees, late interest, due day, collection
+ * method, notes). Fees and late interest are read when collecting and settling,
+ * so they apply from the next payment or settlement; the due day applies to new
+ * debts. The change is logged in the contract history with before/after.
+ */
+export async function updateContractConditions(contractId: string, input: ContractConditions) {
+  const { organizationId } = await getActiveMembership();
+  return asUser(async (tx, user) => {
+    const contract = await loadContract(tx, organizationId, contractId);
+    const next = {
+      feeType: input.feeType,
+      feeValue: input.feeValue,
+      feesOnLateInterest: input.feesOnLateInterest === "on",
+      lateInterestDailyPct: input.lateInterestDailyPct,
+      dueDay: input.dueDay,
+      lateInterestFrom: input.lateInterestFrom,
+      collectionMethod: input.collectionMethod,
+      notes: input.notes,
+    };
+    // Compare numbers by value: "10" and "10.0000" are the same fee.
+    const same = (a: unknown, b: unknown) =>
+      typeof a === "string" && typeof b === "string" && /^-?\d+(\.\d+)?$/.test(a) && /^-?\d+(\.\d+)?$/.test(b) ? new Decimal(a).equals(b) : a === b;
+    const changes = Object.fromEntries(
+      Object.entries(next)
+        .filter(([key, value]) => !same(contract[key as keyof typeof next], value))
+        .map(([key, value]) => [key, { from: contract[key as keyof typeof next], to: value }]),
+    );
+    if (Object.keys(changes).length === 0) return { changed: 0 };
+    await tx.update(contracts).set(next).where(eq(contracts.id, contract.id));
+    await tx.insert(contractEvents).values({
+      organizationId,
+      contractId: contract.id,
+      type: "updated",
+      reason: input.reason,
+      payload: { changes },
+      createdBy: user.id,
+    });
+    return { changed: Object.keys(changes).length };
   });
 }

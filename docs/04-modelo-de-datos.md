@@ -78,7 +78,7 @@ erDiagram
 ## Contratos y períodos
 
 **contracts**
-`id, organization_id, number, property_id, status (draft | active | finished | terminated | renewed), start_date, end_date, original_end_date, currency, initial_amount, first_billed_month, index_series_id (null = sin actualización), index_mode (index | fixed_pct | none), fixed_pct, update_frequency_months, fee_type (pct | fixed), fee_value, fees_on_late_interest bool, late_interest_daily_pct, due_day, late_interest_from (day_1 | after_due), collection_method, default_cash_account_id, default_owner_bank_account_id, file_path, renewed_to_contract_id, finished_at, creation_source (web | csv | ai), deleted_at`
+`id, organization_id, number, property_id, status (draft | active | finished | terminated | renewed), start_date, end_date, original_end_date, currency, initial_amount, first_billed_month, index_series_id (null = sin actualización), index_mode (index | fixed_pct | none), fixed_pct, update_frequency_months, fee_type (pct | fixed), fee_value, fees_on_late_interest bool, late_interest_daily_pct, due_day, late_interest_from (day_1 | after_due), collection_method, default_cash_account_id, default_owner_bank_account_id, renewed_to_contract_id, finished_at, creation_source (web | csv | ai), deleted_at`
 
 **contract_parties** — `contract_id, client_id, role (owner | tenant | guarantor), share_pct`
 (los propietarios del contrato se copian de la propiedad al crearlo y pueden ajustarse)
@@ -143,7 +143,7 @@ Restricción: por cada `posting_id` (un registro o una reversa), débitos = cré
 
 **incidents** — `id, organization_id, number, property_id, contract_id, title, description, priority, status, assignee_id, created_by`
 **notes** — `id, organization_id, entity_type, entity_id, content, highlight_scope (none | tenant | owner | general), created_by`
-**files** — `id, organization_id, entity_type, entity_id, storage_path, filename, mime_type, size_bytes`
+**files** — `id, organization_id, entity_type (contract | movement | client | property), entity_id, storage_path, filename, mime_type, size_bytes, created_by` (el contrato firmado es un archivo más del contrato)
 
 ## Portales (F3)
 

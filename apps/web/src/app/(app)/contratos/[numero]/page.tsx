@@ -14,10 +14,11 @@ import { communicationHistory } from "@/lib/communications";
 import { currentMonthIn, formatDate, formatMonth, todayIn } from "@/lib/dates";
 import { formatYearMonth } from "@rentavle/domain";
 import { clientName, formatAddress } from "@/lib/format";
-import { formatMoney, formatPercent } from "@/lib/numbers";
+import { formatMoney, formatPercent, trimDecimal } from "@/lib/numbers";
 import { getContractByNumber } from "../data";
 import {
   COLLECTION_METHOD_OPTIONS,
+  CONDITION_LABEL,
   EVENT_LABEL,
   LATE_INTEREST_FROM_OPTIONS,
   PERIOD_STATUS_LABEL,
@@ -32,6 +33,9 @@ import { Button } from "@/components/ui/button";
 import { HandCoins } from "lucide-react";
 import { getContractCharges } from "./charges-data";
 import { ChargesSection } from "./charges-section";
+import { FilesCard } from "@/components/files-card";
+import { listFiles } from "@/lib/files";
+import { ConditionsDialog } from "./conditions-dialog";
 import { AdjustPeriodDialog } from "../actualizaciones/update-controls";
 
 export const metadata: Metadata = { title: "Contrato · Rentavle" };
@@ -77,10 +81,11 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
   const tenants = parties.filter((p) => p.role === "tenant");
   const guarantors = parties.filter((p) => p.role === "guarantor");
   const current = [...periods].reverse().find((p) => p.amount !== null);
-  const [{ charges, templates }, payments, history] = await Promise.all([
+  const [{ charges, templates }, payments, history, attachments] = await Promise.all([
     getContractCharges(contract.id),
     listMovements({ contractId: contract.id, limit: 50 }),
     communicationHistory({ contractId: contract.id }),
+    listFiles("contract", contract.id),
   ]);
   const hasOpenDebts = charges.some((c) => (c.status === "pending" || c.status === "partially_paid") && c.debtor === "tenant");
 
@@ -118,6 +123,21 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
             endDate={contract.endDate}
             hasTermination={contract.endDate < contract.originalEndDate}
           />
+          {contract.status === "active" && (
+            <ConditionsDialog
+              contractId={contract.id}
+              values={{
+                feeType: contract.feeType,
+                feeValue: trimDecimal(contract.feeValue).replace(".", ","),
+                feesOnLateInterest: contract.feesOnLateInterest,
+                lateInterestDailyPct: trimDecimal(contract.lateInterestDailyPct).replace(".", ","),
+                dueDay: String(contract.dueDay),
+                lateInterestFrom: contract.lateInterestFrom,
+                collectionMethod: contract.collectionMethod,
+                notes: contract.notes ?? "",
+              }}
+            />
+          )}
           </>
         }
       />
@@ -313,7 +333,7 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
         <CardContent>
           <ol className="grid gap-3 text-sm">
             {events.map((e) => {
-              const payload = e.payload as { previousEndDate?: string; newEndDate?: string; newContractNumber?: number };
+              const payload = e.payload as { previousEndDate?: string; newEndDate?: string; newContractNumber?: number; changes?: Record<string, unknown> };
               return (
                 <li key={e.id} className="grid gap-0.5 border-l-2 pl-3">
                   <span className="font-medium">
@@ -322,6 +342,16 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
                       <span className="text-muted-foreground font-normal">
                         {" "}
                         · fin {formatDate(payload.previousEndDate)} → {formatDate(payload.newEndDate)}
+                      </span>
+                    )}
+                    {payload.changes && (
+                      <span className="text-muted-foreground font-normal">
+                        {" "}
+                        · {/* Form order (jsonb keeps keys sorted). */}
+                        {Object.keys(CONDITION_LABEL)
+                          .filter((k) => k in payload.changes!)
+                          .map((k) => CONDITION_LABEL[k])
+                          .join(", ")}
                       </span>
                     )}
                     {payload.newContractNumber && (
@@ -338,6 +368,8 @@ async function ContractDetail({ params }: Pick<PageProps<"/contratos/[numero]">,
           </ol>
         </CardContent>
       </Card>
+
+      <FilesCard entityType="contract" entityId={contract.id} files={attachments} title="Archivos del contrato" description="Contrato firmado, anexos, inventario." />
 
       <CommunicationsCard rows={history} timezone={timezone} />
     </div>

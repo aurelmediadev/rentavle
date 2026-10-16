@@ -103,3 +103,37 @@ export function parseContractForm(
   else data.fixedUpdatePct = undefined;
   return { ok: true, data };
 }
+
+/** Conditions that can change during a contract (see updateContractConditions for what they affect). */
+const conditionsSchema = z
+  .object({
+    feeType: z.enum(["pct", "fixed"]),
+    feeValue: decimalField("Ingresá los honorarios"),
+    feesOnLateInterest: z.literal("on").optional(),
+    lateInterestDailyPct: decimalField("Porcentaje inválido"),
+    dueDay: z.coerce.number().int().min(1, "Entre 1 y 28").max(28, "Entre 1 y 28"),
+    lateInterestFrom: z.enum(["after_due", "day_1"]),
+    collectionMethod: z.enum(["cash", "transfer_to_admin", "transfer_to_owner", "split_transfer"]),
+    notes: z
+      .string()
+      .trim()
+      .max(2000)
+      .transform((v) => v || null),
+    reason: z.string().trim().min(3, "Contá brevemente por qué cambia").max(500),
+  })
+  .superRefine((v, ctx) => {
+    if (v.feeType === "pct" && new Decimal(v.feeValue).gt(100)) {
+      ctx.addIssue({ code: "custom", path: ["feeValue"], message: "No puede superar el 100%" });
+    }
+    if (new Decimal(v.lateInterestDailyPct).gt(5)) {
+      ctx.addIssue({ code: "custom", path: ["lateInterestDailyPct"], message: "Máximo 5% diario" });
+    }
+  });
+
+export type ContractConditions = z.output<typeof conditionsSchema>;
+
+export function parseConditionsForm(formData: FormData): { ok: true; data: ContractConditions } | { ok: false; state: FormState } {
+  const parsed = conditionsSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { ok: false, state: validationError(parsed.error, formData) };
+  return { ok: true, data: parsed.data };
+}
