@@ -60,3 +60,7 @@ packages/country  Paquetes por país (Argentina: CUIT, provincias, condiciones f
 supabase/         Configuración local y migraciones SQL
 docs/             Producto, reglas de negocio, arquitectura y roadmap
 ```
+
+## Producción
+
+Paso a paso en [docs/08-produccion.md](docs/08-produccion.md).

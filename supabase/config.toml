@@ -244,6 +244,20 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Spanish auth emails (same look as the app's emails). In production they are
+# pasted in the dashboard (docs/08-produccion.md), not pushed with config push.
+[auth.email.template.confirmation]
+subject = "Confirmá tu email - Rentavle"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Elegí una contraseña nueva - Rentavle"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Confirmá tu nuevo email - Rentavle"
+content_path = "./supabase/templates/email_change.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

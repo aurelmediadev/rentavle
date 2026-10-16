@@ -15,6 +15,7 @@ Esta carpeta define **qué** construimos y **cómo**, antes de escribir código.
 | 05 | [Arquitectura](05-arquitectura.md) | Stack, multi-tenant, multipaís, integraciones, seguridad |
 | 06 | [Roadmap](06-roadmap.md) | Fases, entregables y criterios de salida |
 | 07 | [Referencia: Krenta](07-referencia-krenta.md) | Lo que aprendimos del competidor (ingeniería inversa, oct-2026) |
+| 08 | [Puesta en producción](08-produccion.md) | Cuentas, Supabase, Vercel, Resend, MercadoPago y primer arranque |
 
 ## Decisiones tomadas
 

@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { applySubscriptionStatus, recordSubscriptionPayment } from "@rentavle/billing";
+import { BillingError, applySubscriptionStatus, recordSubscriptionPayment } from "@rentavle/billing";
 import { schema } from "@rentavle/db";
 import { subscriptionAmount } from "@rentavle/domain";
 import { asUser, requireRole, requireUser } from "@/lib/auth";
@@ -30,7 +30,14 @@ export async function startSubscription(planCode: string, cycle: "monthly" | "an
   }
   const amount = subscriptionAmount(plan, cycle, extraBlocks);
 
-  const provider = billingProvider();
+  let provider: ReturnType<typeof billingProvider>;
+  try {
+    provider = billingProvider();
+  } catch (error) {
+    // Production before the MercadoPago credentials are loaded.
+    if (error instanceof BillingError) return { message: "Todavía no podemos cobrar suscripciones en línea: escribinos a hola@rentavle.com y te activamos el plan." };
+    throw error;
+  }
   const id = randomUUID();
   const user = await requireUser();
   const created = await provider.create({

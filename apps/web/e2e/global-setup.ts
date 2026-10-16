@@ -25,9 +25,17 @@ const ROUTES = [
 export default async function globalSetup(config: FullConfig) {
   const { baseURL, channel } = config.projects[0]!.use;
   const browser = await chromium.launch({ channel });
-  const page = await browser.newPage({ baseURL });
+  let page = await browser.newPage({ baseURL });
   try {
-    await createAgency(page);
+    // Public pages first; then sign up (its expects use the 5 s default here, so a
+    // cold first attempt may time out: the second one finds everything compiled).
+    for (const route of ["/", "/registro", "/ingresar"]) await page.goto(route, { timeout: 120_000 });
+    try {
+      await createAgency(page);
+    } catch {
+      page = await browser.newPage({ baseURL });
+      await createAgency(page);
+    }
     for (const route of ROUTES) {
       await page.goto(route, { timeout: 120_000 });
       await page.waitForLoadState("networkidle", { timeout: 120_000 });
